@@ -17,7 +17,7 @@ import settings
 
 urlpatterns = [
     url(r'^layerindex/', include('layerindex.urls')),
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', admin.site.urls),
     url(r'^accounts/password_reset/$',
         CaptchaPasswordResetView.as_view(
             email_template_name='registration/password_reset_email.txt',
