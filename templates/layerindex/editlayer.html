@@ -114,6 +114,12 @@
             {% endif %}
         {% endfor %}
     </div>
+    <h3 id="layerbranches">Branches</h3>
+    <ul>
+    {% for branch in layerbranches %}
+        <li>{{ branch}}</li>
+    {% endfor %}
+    </ul>
     <h3 id="maintainers">Maintainers</h3>
     {{ maintainerformset.non_form_errors }}
     {{ maintainerformset.management_form }}

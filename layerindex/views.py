@@ -131,7 +131,9 @@ def edit_layer_view(request, template_name, branch='master', slug=None):
             raise Http404
         if not (request.user.is_authenticated and (request.user.has_perm('layerindex.publish_layer') or layeritem.user_can_edit(request.user))):
             raise PermissionDenied
+        layerbranchquery = LayerBranch.objects.filter(layer=layeritem)
         layerbranch = get_object_or_404(LayerBranch, layer=layeritem, branch=branchobj)
+        actual_branch = layerbranch.actual_branch
         old_maintainers = list(layerbranch.layermaintainer_set.values_list('email', flat=True))
         deplistlayers = LayerItem.objects.filter(comparison=False).exclude(id=layeritem.id).order_by('name')
         returnto = request.GET.get('returnto', 'layer_item')
