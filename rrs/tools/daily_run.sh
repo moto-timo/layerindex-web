@@ -1,16 +1,12 @@
 #!/bin/bash
 
-rrs_dir=__RRS_PATH__
-venv_activate=__VENV_ACTIVATE__
-
-source $venv_activate
-
-$rrs_dir/layerindex/update.py
-$rrs_dir/rrs/tools/rrs_maintainer_history.py -d
-$rrs_dir/rrs/tools/rrs_upgrade_history.py -d
-$rrs_dir/rrs/tools/rrs_upstream_history.py -d
-$rrs_dir/rrs/tools/rrs_distros.py -d
+/opt/layerindex/layerindex/update.py -q
+/opt/layerindex/rrs/tools/rrs_maintainer_history.py -d
+/opt/layerindex/rrs/tools/rrs_upgrade_history.py -d
+/opt/layerindex/rrs/tools/rrs_upstream_history.py -d
+# FIXME: requires changes in meta/lib/oe/distro_check.py to be functional
+#/opt/layerindex/rrs/tools/rrs_distros.py -d
 
 if [ "$1" = "email" ]; then
-	$rrs_dir/rrs/tools/rrs_upstream_email.py
+	/opt/layerindex/rrs/tools/rrs_upstream_email.py
 fi
