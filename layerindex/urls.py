@@ -195,6 +195,11 @@ urlpatterns = [
             content_type='text/plain; charset=utf-8',
             template_name='layerindex/branchcompare_plain.txt'),
         name='branch_comparison_plain'),
+    re_path(r'^branch_comparison_csv/$',
+        BranchCompareView.as_view(
+            content_type='text/csv; charset=utf-8',
+            template_name='layerindex/branchcompare_csv.txt'),
+        name='branch_comparison_csv'),
     re_path(r'^recipe_deps/$',
         RecipeDependenciesView.as_view(
             template_name='layerindex/recipedeps.html'),
