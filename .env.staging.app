@@ -10,4 +10,4 @@ RABBITMQ_DEFAULT_PASS=guest
 #EMAIL_PASSWORD=<set this here if needed>
 #EMAIL_USE_SSL=<set this here if needed>
 #EMAIL_USE_TLS=<set this here if needed>
-#DEBUG=1
+DEBUG=0
