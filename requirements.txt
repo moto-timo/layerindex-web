@@ -9,7 +9,7 @@ click-plugins==1.1.1
 click-repl==0.3.0
 confusable-homoglyphs==3.3.1
 diff-match-patch==20230430
-Django>=4.2,<4.3
+Django>=4.2.27
 django-appconf==1.0.6
 django-axes==6.5.1
 django-cors-headers==4.4.0
@@ -32,7 +32,7 @@ pytz==2024.1
 six==1.16.0
 smmap==5.0.1
 soupsieve==2.6
-sqlparse==0.5.1
+sqlparse==0.5.4
 typing_extensions==4.12.2
 tzdata==2024.1
 vine==5.1.0
