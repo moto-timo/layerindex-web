@@ -2,6 +2,15 @@ html {
     overflow-y: scroll;
 }
 
+/* Restore BS3-style link decoration: no underline until hover */
+a {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
 .top-padded { 
     padding-top: 65px; 
 }
