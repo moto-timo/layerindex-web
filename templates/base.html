@@ -35,39 +35,8 @@
             <a class="navbar-brand" href="{% url 'frontpage' %}">{{ site_name }}</a>
 
             <div class="collapse navbar-collapse">
-               {% block userfunctions %}
-               {% if user.is_authenticated %}
-                    <div class="btn-group float-end nav-spacer">
-                        {% if perms.layerindex.publish_layer %}
-                        {% if unpublished_count > 0 %}
-                        <a class="btn btn-outline-secondary" href="{% url 'layer_list_review' %}?branch=master">
-                            <span class="badge bg-warning text-dark review-notification">{{ unpublished_count }}</span>
-                        </a>
-                        {% endif %}
-                        {% endif %}
-                        <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                            <i class="bi bi-person" aria-hidden="true"></i>
-                            {{ user.username }}
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#" onclick="document.getElementById('logout-form').submit(); return false;">{% trans "Log out" %}</a></li>
-                            <li><a class="dropdown-item" href="{% url 'password_change' %}">{% trans "Change password" %}</a></li>
-                            <li><a class="dropdown-item" href="{% url 'profile' %}?return_to={{ request.path }}">{% trans "Edit profile" %}</a></li>
-                        </ul>
-                    </div>
-                {% else %}
-                    <div class="float-end nav-spacer">
-                        <a class="btn btn-outline-secondary" href="{% url 'login' %}{% if login_return_url %}?next={{ login_return_url }}{% endif %}">{% trans "Log in" %}</a>
-                    </div>
-                {% endif %}
-                {% endblock %}
                 {% block topfunctions %}
                 {% block topfunctions_extra %}
-                {% endblock %}
-                {% block submitlayer %}
-                <div class="float-end nav-spacer">
-                    <a class="btn btn-info" href="{% url 'submit_layer' %}">Submit layer</a>
-                </div>
                 {% endblock %}
                 <ul class="navbar-nav ms-auto">
                     {% if user.is_authenticated %}
@@ -94,6 +63,37 @@
                     </li>
                     {% endif %}
                 </ul>
+                {% endblock %}
+                {% block submitlayer %}
+                <div class="nav-spacer">
+                    <a class="btn btn-info" href="{% url 'submit_layer' %}">Submit layer</a>
+                </div>
+                {% endblock %}
+               {% block userfunctions %}
+               {% if user.is_authenticated %}
+                    <div class="btn-group nav-spacer">
+                        {% if perms.layerindex.publish_layer %}
+                        {% if unpublished_count > 0 %}
+                        <a class="btn btn-outline-secondary" href="{% url 'layer_list_review' %}?branch=master">
+                            <span class="badge bg-warning text-dark review-notification">{{ unpublished_count }}</span>
+                        </a>
+                        {% endif %}
+                        {% endif %}
+                        <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-person" aria-hidden="true"></i>
+                            {{ user.username }}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'logout' %}">{% trans "Log out" %}</a></li>
+                            <li><a class="dropdown-item" href="{% url 'password_change' %}">{% trans "Change password" %}</a></li>
+                            <li><a class="dropdown-item" href="{% url 'profile' %}?return_to={{ request.path }}">{% trans "Edit profile" %}</a></li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <div class="nav-spacer">
+                        <a class="btn btn-outline-secondary" href="{% url 'login' %}{% if login_return_url %}?next={{ login_return_url }}{% endif %}">{% trans "Log in" %}</a>
+                    </div>
+                {% endif %}
                 {% endblock %}
             </div> <!-- end of "collapse" -->
         </div> <!--  end of "container-fluid" -->
