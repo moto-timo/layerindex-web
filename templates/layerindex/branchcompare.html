@@ -22,8 +22,9 @@
         <div class="row">
             <div class="col-md-12">
 
-    <div class="float-end">
-        <form class="form-inline" method="GET">
+    <div class="d-flex justify-content-between align-items-start">
+                <h2>Branch recipe comparison</h2>
+        <form class="form-inline d-flex align-items-center" method="GET">
             {{ form }}
 
             <div id="layerDialog" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="layerDialogLabel">
@@ -71,11 +72,9 @@
 
             <a href="#layerDialog" role="button" id="id_select_layers" class="btn btn-outline-secondary nav-spacer" data-bs-toggle="modal">Filter layers <span class="badge bg-success" id="id_layers_count">{{ showlayers|length }}</span></a>
 
-            <button type="submit" class="btn btn-primary">Show</button>
+            <button type="submit" class="btn btn-primary nav-spacer">Show</button>
         </form>
     </div>
-
-                <h2>Branch recipe comparison</h2>
 {% if added or changed or removed %}
                 <h3>Added</h3>
                 <table class="table table-striped table-bordered recipestable">
