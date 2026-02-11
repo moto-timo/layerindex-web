@@ -10,16 +10,15 @@
 
 {% load i18n %}
 {% load static %}
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{% static "css/bootstrap.css" %}" />
-    <link rel="stylesheet" href="{% static "css/bootstrap-theme.css" %}" />
+    <link rel="stylesheet" href="{% static "css/bootstrap.min.css" %}" />
+    <link rel="stylesheet" href="{% static "css/bootstrap-icons.min.css" %}" />
     <link rel="stylesheet" href="{% static "css/additional.css" %}" />
     <link rel="icon" type="image/vnd.microsoft.icon" href="{% static "img/favicon.ico" %}" />
     <title>{{ site_name }}{% block title_append %} - {% endblock %}</title>
@@ -31,80 +30,73 @@
     {% block header %}
     {% autoescape on %}
     <form id="logout-form" method="post" action="{% url 'logout' %}">{% csrf_token %}</form>
-    <nav class="navbar navbar-default navbar-fixed-top">
+    <nav class="navbar navbar-expand navbar-light bg-light fixed-top">
         <div class="container-fluid">
-            <div class="navbar-header">
-                <a class="navbar-brand" href="{% url 'frontpage' %}">{{ site_name }}</a>
-            </div>
+            <a class="navbar-brand" href="{% url 'frontpage' %}">{{ site_name }}</a>
 
-            <div class="navbar-collapse collapse">
+            <div class="collapse navbar-collapse">
                {% block userfunctions %}
                {% if user.is_authenticated %}
-                    <div class="btn-group pull-right nav-spacer">
+                    <div class="btn-group float-end nav-spacer">
                         {% if perms.layerindex.publish_layer %}
                         {% if unpublished_count > 0 %}
-                        <a class="btn btn-default navbar-btn" href="{% url 'layer_list_review' %}?branch=master">
-                            <span class="badge badge-warning review-notification">{{ unpublished_count }}</span>
+                        <a class="btn btn-outline-secondary" href="{% url 'layer_list_review' %}?branch=master">
+                            <span class="badge bg-warning text-dark review-notification">{{ unpublished_count }}</span>
                         </a>
                         {% endif %}
                         {% endif %}
-                        <button class="btn btn-default navbar-btn dropdown-toggle" data-toggle="dropdown">
-                            <i class="glyphicon glyphicon-user" aria-hidden="true"></i>
+                        <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-person" aria-hidden="true"></i>
                             {{ user.username }}
-                            <b class="caret"></b>
                         </button>
                         <ul class="dropdown-menu">
-                            <li><a href="#" onclick="document.getElementById('logout-form').submit(); return false;">{% trans "Log out" %}</a></li>
-                            <li><a href="{% url 'password_change' %}">{% trans "Change password" %}</a></li>
-                            <li><a href="{% url 'profile' %}?return_to={{ request.path }}">{% trans "Edit profile" %}</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="document.getElementById('logout-form').submit(); return false;">{% trans "Log out" %}</a></li>
+                            <li><a class="dropdown-item" href="{% url 'password_change' %}">{% trans "Change password" %}</a></li>
+                            <li><a class="dropdown-item" href="{% url 'profile' %}?return_to={{ request.path }}">{% trans "Edit profile" %}</a></li>
                         </ul>
                     </div>
                 {% else %}
-                    <div class="pull-right nav-spacer">
-                        <a class="btn btn-default navbar-btn" href="{% url 'login' %}{% if login_return_url %}?next={{ login_return_url }}{% endif %}">{% trans "Log in" %}</a>
+                    <div class="float-end nav-spacer">
+                        <a class="btn btn-outline-secondary" href="{% url 'login' %}{% if login_return_url %}?next={{ login_return_url }}{% endif %}">{% trans "Log in" %}</a>
                     </div>
                 {% endif %}
                 {% endblock %}
-                <ul class="nav navbar-nav pull-right">
-                    <li class="divider-vertical"></li>
-                </ul>
                 {% block topfunctions %}
                 {% block topfunctions_extra %}
                 {% endblock %}
                 {% block submitlayer %}
-                <div class="pull-right nav-spacer">
-                    <a class="btn btn-info navbar-btn" href="{% url 'submit_layer' %}">Submit layer</a>
+                <div class="float-end nav-spacer">
+                    <a class="btn btn-info" href="{% url 'submit_layer' %}">Submit layer</a>
                 </div>
                 {% endblock %}
-                <ul class="nav navbar-nav pull-right">
+                <ul class="navbar-nav ms-auto">
                     {% if user.is_authenticated %}
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
                         Tools
-                        <b class="caret"></b>
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a href="{% url 'bulk_change' %}">Bulk Change</a></li>
-                            <li><a href="{% url 'duplicates' 'master' %}">Duplicates</a></li>
-                            <li><a href="{% url 'update_list' %}">Updates</a></li>
-                            <li><a href="{% url 'stats' %}">Statistics</a></li>
-                            <li><a href="{% url 'branch_comparison' %}">Branch Comparison</a></li>
-                            <li><a href="{% url 'recipe_deps' %}">Recipe Dependencies</a></li>
+                            <li><a class="dropdown-item" href="{% url 'bulk_change' %}">Bulk Change</a></li>
+                            <li><a class="dropdown-item" href="{% url 'duplicates' 'master' %}">Duplicates</a></li>
+                            <li><a class="dropdown-item" href="{% url 'update_list' %}">Updates</a></li>
+                            <li><a class="dropdown-item" href="{% url 'stats' %}">Statistics</a></li>
+                            <li><a class="dropdown-item" href="{% url 'branch_comparison' %}">Branch Comparison</a></li>
+                            <li><a class="dropdown-item" href="{% url 'recipe_deps' %}">Recipe Dependencies</a></li>
                             {% if rrs_enabled %}
-                            <li><a href="{% url 'rrs_frontpage' %}">Recipe Maintenance</a></li>
+                            <li><a class="dropdown-item" href="{% url 'rrs_frontpage' %}">Recipe Maintenance</a></li>
                             {% endif %}
                             {% if user.is_staff %}
-                            <li class="divider"></li>
-                            <li><a href="{% url 'admin:index' %}">Admin</a></li>
-                            <li><a href="{% url 'email_test' %}">Test email</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'admin:index' %}">Admin</a></li>
+                            <li><a class="dropdown-item" href="{% url 'email_test' %}">Test email</a></li>
                             {% endif %}
                         </ul>
                     </li>
                     {% endif %}
                 </ul>
                 {% endblock %}
-            </div> <!-- end of "container" -->
-        </div> <!--  "end of "container-fluid" -->
+            </div> <!-- end of "collapse" -->
+        </div> <!--  end of "container-fluid" -->
     </nav> <!--  end of "navbar" -->
     {% endautoescape %}
     {% endblock %}
@@ -136,7 +128,7 @@
     </div>
 
     <script src="{% static "js/jquery-3.7.1.min.js" %}"></script>
-    <script src="{% static "js/bootstrap-3.4.1.min.js" %}"></script>
+    <script src="{% static "js/bootstrap.bundle.min.js" %}"></script>
 {% block scripts %}
 {% endblock %}
 

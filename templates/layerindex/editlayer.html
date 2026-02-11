@@ -26,7 +26,7 @@
 <div class="container-fluid">
     <div class="row">
         {% block heading %}
-        <div class="page-header">
+        <div class="pb-2 mb-3 border-bottom">
             <h1>Edit layer</h1>
         </div>
         {% endblock %}
@@ -48,14 +48,14 @@
             {% else %}
             <div class="form-group">
             {% endif %}
-                <div class="control-label">
+                <div class="form-label">
                     {{ field.label_tag }}
                 </div>
                 <div class="controls">
                     {% if field.name == 'deps' %}
                         <div class="form-group has-feedback has-clear">
                             <input type="text" class="form-control" id="layersearchtext" placeholder="search layers">
-                            <a class="glyphicon glyphicon-remove-sign form-control-feedback form-control-clear" id="layersearchclear" style="pointer-events: auto; text-decoration: none;cursor: pointer;"></a>
+                            <a class="bi bi-x-circle form-control-feedback form-control-clear" id="layersearchclear" style="pointer-events: auto; text-decoration: none;cursor: pointer;"></a>
                         </div>
                         <div class="scrolling">
                             <table class="layerstable"><tbody>
@@ -88,14 +88,14 @@
                     {% else %}
                         {{ field }}
                     {% endif %}
-                    <span class="help-block custom-help">
+                    <span class="form-text custom-help">
                         {{ field.help_text }}
                     </span>
                 </div>
             </div>
             {% endif %}
             {% if field.name == 'vcs_web_url' %}
-                <div class="control-label">
+                <div class="form-label">
                     Web interface type
                 </div>
                 <div class="controls">
@@ -107,7 +107,7 @@
                         <option>gitlab</option>
                         </select>
                     </div>
-                    <span class="help-block custom-help">
+                    <span class="form-text custom-help">
                         Type of web interface (helps to auto-determine other URL fields)
                     </span>
                 </div>
@@ -132,12 +132,12 @@
                     {% else %}
                     <div class="form-group">
                     {% endif %}
-                        <div class="control-label">
+                        <div class="form-label">
                             {{ field.label_tag }}
                         </div>
                         <div class="controls">
                             {{ field }}
-                            <span class="help-block custom-help">
+                            <span class="form-text custom-help">
                                 {{ field.help_text }}
                             </span>
                         </div>
@@ -146,7 +146,7 @@
             </div>
         </div>
     {% endfor %}
-    <p><a href="#" class="btn btn-default btn-sm" id="addanothermaintainer"><i class="glyphicon glyphicon-plus" aria-hidden="true"></i>Add maintainer</a><p>
+    <p><a href="#" class="btn btn-outline-secondary btn-sm" id="addanothermaintainer"><i class="bi bi-plus" aria-hidden="true"></i>Add maintainer</a><p>
 
 
     {% if form.captcha %}
@@ -160,7 +160,7 @@
             {% endif %}
                 <div class="controls">
                     {{ form.captcha }}
-                    <span class="help-block custom-help">
+                    <span class="form-text custom-help">
                         {{ form.captcha.help_text }}
                     </span>
                 </div>
@@ -170,8 +170,8 @@
 
 <div class="submitbuttons">
 {% block submitbuttons %}
-<input type="submit" value="Save layer" class="btn btn-primary btn-large submitbutton" />
-<a href="{{ return_url }}" class="btn btn-default btn-large">Cancel</a>
+<input type="submit" value="Save layer" class="btn btn-primary btn-lg submitbutton" />
+<a href="{{ return_url }}" class="btn btn-outline-secondary btn-lg">Cancel</a>
 {% endblock %}
 </div>
 </form>

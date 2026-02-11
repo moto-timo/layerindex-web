@@ -36,10 +36,10 @@
                             <div class="controls">
                                 <div class="input-group col-md-6">
                                     <input type="text" class="form-control" id="id_search_text" placeholder="Search recipes" name="q" value="{{ search_keyword }}" />
-                                    <div class="input-group-btn">
-                                        <button class="btn btn-default" type="submit">search</button>
+                                    <div>
+                                        <button class="btn btn-outline-secondary" type="submit">search</button>
                                         <a class="btn btn-link" id="helplink" role="button"
-                                            data-toggle="popover"
+                                            data-bs-toggle="popover"
                                             data-html="true"
                                             title="Searching"
                                             data-placement="bottom"
@@ -55,11 +55,11 @@
 </ul>
 <p><b>Note:</b> do not use spaces when using the advanced query terms above.</p>
 ">
-                                            <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span> help
+                                            <span class="bi bi-question-circle" aria-hidden="true"></span> help
                                         </a>
                                     </div>
                                 </div>
-                                <span class="help-block" id="errortext"></span>
+                                <span class="form-text" id="errortext"></span>
                             </div>
                         </div>
                     </form>
@@ -80,7 +80,7 @@
                     <tbody>
                         {% for recipe in recipe_list %}
                             <tr {% if recipe.preferred_count > 0 %}class="text-muted"{% endif %}>
-                                <td><a href="{% url 'recipe' recipe.id %}">{{ recipe.name }}</a>{% if 'image' in recipe.inherits.split %} <i class="glyphicon glyphicon-hdd" aria-hidden="true"></i>{% endif %}{% if recipe.blacklisted %}<span class="label label-inverse" title="{{ recipe.blacklisted }}">blacklisted</span>{% endif %}</td>
+                                <td><a href="{% url 'recipe' recipe.id %}">{{ recipe.name }}</a>{% if 'image' in recipe.inherits.split %} <i class="bi bi-hdd" aria-hidden="true"></i>{% endif %}{% if recipe.blacklisted %}<span class="badge bg-dark" title="{{ recipe.blacklisted }}">blacklisted</span>{% endif %}</td>
                                 <td>{{ recipe.pv }}</td>
                                 <td>{{ recipe.short_desc }}</td>
                                 <td><a href="{% url 'layer_item' url_branch recipe.layerbranch.layer.name %}">{{ recipe.layerbranch.layer.name }}</a></td>
@@ -110,11 +110,9 @@
         if( ! firstfield.val() )
             firstfield.focus()
 
-        $('.glyphicon-hdd').tooltip({title:"Inherits image"});
-        $('.label-inverse').tooltip();
-        $('[data-toggle="popover"]').popover({
-            container: 'body'
-        });
+        document.querySelectorAll('.bi-hdd').forEach(function(el) { new bootstrap.Tooltip(el, {title: "Inherits image"}) });
+        document.querySelectorAll('.badge.bg-dark').forEach(function(el) { new bootstrap.Tooltip(el) });
+        document.querySelectorAll('[data-bs-toggle="popover"]').forEach(function(el) { new bootstrap.Popover(el, {container: 'body'}) });
     });
 
     function validate(){

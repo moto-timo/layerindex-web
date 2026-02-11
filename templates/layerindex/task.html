@@ -19,7 +19,7 @@
 {% block content %}
 {% autoescape on %}
 
-<p>Task status for {{ update.task_id }} started by {{ update.triggered_by }} on {{ update.started }}<span id="task_status_fragment">{% if update.finished %} (finished in {{ update.started | timesince2:update.finished }}){% endif %}</span>:<span id="status-label" class="label {% if update.finished %}{% if update.retcode %}label-danger{% else %}label-success{% endif %}{% endif %} pull-right">{% if update.finished %}{% if update.retcode < 0 %}TERMINATED ({{ update.retcode }}){% elif update.retcode %}FAILED{% else %}SUCCEEDED{% endif %}{% endif %}</span></p>
+<p>Task status for {{ update.task_id }} started by {{ update.triggered_by }} on {{ update.started }}<span id="task_status_fragment">{% if update.finished %} (finished in {{ update.started | timesince2:update.finished }}){% endif %}</span>:<span id="status-label" class="badge {% if update.finished %}{% if update.retcode %}bg-danger{% else %}bg-success{% endif %}{% endif %} float-end">{% if update.finished %}{% if update.retcode < 0 %}TERMINATED ({{ update.retcode }}){% elif update.retcode %}FAILED{% else %}SUCCEEDED{% endif %}{% endif %}</span></p>
 
 <pre id="task_log" class="vertical-scroll">{{ update.log }}</pre>
 
@@ -31,7 +31,7 @@
 {% endif %}
 
 {% if not update.finished %}
-<button id="stopbutton" class="btn btn-danger pull-right">Stop</button>
+<button id="stopbutton" class="btn btn-danger float-end">Stop</button>
 {% endif %}
 
 {% if update.comparisonrecipeupdate_set.exists %}
@@ -101,11 +101,11 @@
                     $("#progressbar").html(failstr);
                     $("#progressbar").removeClass('progress-bar-info').addClass('progress-bar-danger');
                     $("#status-label").html(failstr);
-                    $("#status-label").addClass('label-danger');
+                    $("#status-label").addClass('bg-danger');
                 }
                 else if(done == '1') {
                     $("#status-label").html('SUCCEEDED');
-                    $("#status-label").addClass('label-success');
+                    $("#status-label").addClass('bg-success');
                 }
             }
         }).always(function () {

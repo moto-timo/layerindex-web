@@ -22,14 +22,13 @@
         <div class="row">
             <div class="col-md-12">
 
-    <div class="pull-right dropdown">
-        <button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+    <div class="float-end dropdown">
+        <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
         Branch: <b>{{ url_branch }}</b>
-        <b class="caret"></b>
         </button>
         <ul class="dropdown-menu" style="right: auto;">
             {% for branch in all_branches %}
-                <li><a href="{% url this_url_name branch.name %}">
+                <li><a class="dropdown-item" href="{% url this_url_name branch.name %}">
                     {% if branch.name == url_branch %}<b>{% endif %}
                     {{ branch.name }}
                     {% if branch.short_description %}
@@ -44,14 +43,14 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         <h3 id="layerDialogLabel">Select layers to include</h3>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <form action="" method="get">
                         <div class="modal-body">
                             <div class="form-group has-feedback has-clear">
                                 <input type="text" class="form-control" id="layersearchtext" placeholder="search layers">
-                                <a class="glyphicon glyphicon-remove-sign form-control-feedback form-control-clear" id="layersearchclear" style="pointer-events: auto; text-decoration: none;cursor: pointer;"></a>
+                                <a class="bi bi-x-circle form-control-feedback form-control-clear" id="layersearchclear" style="pointer-events: auto; text-decoration: none;cursor: pointer;"></a>
                             </div>
                             <div class="scrolling">
                                 <table class="layerstable"><tbody>
@@ -73,20 +72,20 @@
                                 </tbody></table>
                             </div>
                             <div class="buttonblock">
-                            <button type="button" class="btn btn-default" id="id_select_all">Select all</button>
-                            <button type="button" class="btn btn-default buttonblock-btn" id="id_select_none">Select none</button>
+                            <button type="button" class="btn btn-outline-secondary" id="id_select_all">Select all</button>
+                            <button type="button" class="btn btn-outline-secondary buttonblock-btn" id="id_select_none">Select none</button>
                             </div>
                         </div>
                         <div class="modal-footer">
                             <input type="submit" value="Filter" class="btn btn-primary" />
-                            <button class="btn btn-default" id="id_cancel" data-dismiss="modal">Cancel</button>
+                            <button class="btn btn-outline-secondary" id="id_cancel" data-bs-dismiss="modal">Cancel</button>
                         </div>
                     </form>
                 </div><!-- /.modal-content -->
             </div><!-- /.modal-dialog -->
         </div>
 
-        <a href="#layerDialog" role="button" class="btn btn-default nav-spacer" data-toggle="modal">Filter layers {% if showlayers %}<span class="badge badge-success">{{ showlayers|length }}</span>{% endif %}</a>
+        <a href="#layerDialog" role="button" class="btn btn-outline-secondary nav-spacer" data-bs-toggle="modal">Filter layers {% if showlayers %}<span class="badge bg-success">{{ showlayers|length }}</span>{% endif %}</a>
 
     </div>
 

@@ -25,7 +25,7 @@
         {% endblock %}
 
             {% block page_heading %}
-            <div class="page-header">
+            <div class="pb-2 mb-3 border-bottom">
                 <h1>{{ recipe.name }} {{ recipe.pv }}</h1>
             </div>
                 {% if branch.name == 'oe-classic' %}
@@ -35,7 +35,7 @@
                 {% endif %}
             {% endblock %}
 
-{% block to_recipe_extra %}{% if recipe.cover_verified %} <span class="label label-info">verified</span>{% endif %}{% if recipe.needs_attention %} <span class="label label-warning">needs attention</span>{% endif %}{% endblock %}
+{% block to_recipe_extra %}{% if recipe.cover_verified %} <span class="badge bg-info">verified</span>{% endif %}{% if recipe.needs_attention %} <span class="badge bg-warning text-dark">needs attention</span>{% endif %}{% endblock %}
 
                             {% block selectbuttons %}
                             {% if can_edit %}
@@ -85,7 +85,7 @@
                                     {% if rcp.layerbranch.branch.comparison %}
                                         {% if can_disposition_patches %}
                                         <td>{{ patch.patchdisposition.get_disposition_display }}</td>
-                                        <td><a href="#patchDialog{{ patch.id }}" role="button" data-toggle="modal" class="btn btn-default pull-right patch_disposition_button" patch-id="{{ patch.id }}" patch-name="{{ patch.src_path }}">...</a></td>
+                                        <td><a href="#patchDialog{{ patch.id }}" role="button" data-bs-toggle="modal" class="btn btn-outline-secondary float-end patch_disposition_button" patch-id="{{ patch.id }}" patch-name="{{ patch.src_path }}">...</a></td>
                                         {% endif %}
                                     {% else %}
                                     <td>{{ patch.get_status_display }} {{ patch.status_extra | urlize }}</td>
@@ -101,16 +101,16 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         <h3 id="patchDialogLabel{{ patch_id }}">Dialog title</h3>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         {% csrf_token %}
                         {{ form }}
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn-primary patchdialog-save" data-dismiss="modal" patch-id="{{ patch_id }}">Save</button>
-                        <button class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <button class="btn btn-primary patchdialog-save" data-bs-dismiss="modal" patch-id="{{ patch_id }}">Save</button>
+                        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                     </div>
                 </div><!-- /.modal-content -->
             </div><!-- /.modal-dialog -->
@@ -130,7 +130,7 @@
     $('.patchdialog-save').click(function (e) {
         patch_id = $(this).attr('patch-id');
         $('#patch_form_' + patch_id).submit()
-        $('#patchDialog' + patch_id).modal('hide')
+        bootstrap.Modal.getInstance(document.getElementById('patchDialog' + patch_id)).hide()
     });
 {% endblock %}
 

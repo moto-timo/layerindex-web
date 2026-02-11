@@ -36,20 +36,19 @@
                 <form id="filter-form" action="">
                     <div class="form-group has-feedback has-clear">
                         <input type="text" class="form-control" id="layersearchtext" placeholder="Search layers">
-                        <a class="glyphicon glyphicon-remove-sign form-control-feedback form-control-clear" id="layersearchclear" style="pointer-events: auto; text-decoration: none;cursor: pointer;"></a>
+                        <a class="bi bi-x-circle form-control-feedback form-control-clear" id="layersearchclear" style="pointer-events: auto; text-decoration: none;cursor: pointer;"></a>
                     </div>
                 </form>
             </div>
 
-            <span class="pull-right">
+            <span class="float-end">
                 <div class="btn-group">
-                    <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Filter layers
-                        <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu">
                         {% for choice_id, choice_label in layer_type_choices %}
-                        <li><a tabindex="-1" href="#">
+                        <li><a class="dropdown-item" tabindex="-1" href="#">
                             <label class="checkbox">
                                 <input type="checkbox" class="filterlayertypecheckbox" checked value="{{ choice_id }}">{{ choice_label }}
                             </label>
@@ -85,14 +84,14 @@
                             {{ layerbranch.layer.vcs_url }}
                                 {% if layerbranch.layer.vcs_web_url %}
                                 <a class="rollie" href="{{ layerbranch.layer.vcs_web_url }}">
-                                <span class="label label-info">
+                                <span class="badge bg-info">
                                     web repo
                                 </span>
                                 </a>
                                 {% endif %}
                                 {% if layerbranch.tree_url %}
                                 <a class="rollie" href="{{ layerbranch.tree_url }}">
-                                <span class="label label-info">
+                                <span class="badge bg-info">
                                     tree
                                 </span>
                                 </a>

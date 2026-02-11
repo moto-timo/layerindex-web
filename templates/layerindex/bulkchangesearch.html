@@ -56,7 +56,7 @@
                                 </tr>
                             </tbody>
                         </table>
-                        <button class="btn btn-default" type="submit">Search</button>
+                        <button class="btn btn-outline-secondary" type="submit">Search</button>
                     </form>
                 </div>
 
@@ -86,8 +86,8 @@
                             {% endfor %}
                         </tbody>
                     </table>
-                    <input type="submit" class="btn btn-default" name="add_selected" value="Add selected"></input>
-                    <input type="submit" class="btn btn-default" name="add_all" value="Add all"></input>
+                    <input type="submit" class="btn btn-outline-secondary" name="add_selected" value="Add selected"></input>
+                    <input type="submit" class="btn btn-outline-secondary" name="add_all" value="Add all"></input>
 
     {% if is_paginated %}
     {% include "layerindex/paginator.html" %}
@@ -101,7 +101,7 @@
 
             <div class="col-md-3">
                     {% if changeset %}
-                    <div class="well">
+                    <div class="border rounded p-3">
                         <p>{{ changeset.name }}</p>
                         {% if changeset.recipechange_set.all %}
                         <small>
@@ -118,10 +118,10 @@
                             {% endfor %}
                             </ul>
                         </small>
-                        <input type="submit" class="btn btn-default" name="remove_all" value="Remove all"></input>
-                        <a href="{% url 'bulk_change_edit' changeset.id %}" class="btn btn-default">Edit</a>
+                        <input type="submit" class="btn btn-outline-secondary" name="remove_all" value="Remove all"></input>
+                        <a href="{% url 'bulk_change_edit' changeset.id %}" class="btn btn-outline-secondary">Edit</a>
                         {% endif %}
-                        <a href="{% url 'bulk_change_delete' changeset.id %}?cancel=bulk_change_search" class="btn btn-default">Delete</a>
+                        <a href="{% url 'bulk_change_delete' changeset.id %}?cancel=bulk_change_search" class="btn btn-outline-secondary">Delete</a>
                     </div>
                     {% endif %}
                 </form>

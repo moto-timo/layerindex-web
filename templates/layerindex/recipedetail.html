@@ -30,8 +30,8 @@
         <div class="row">
 
             {% block page_heading %}
-            <div class="page-header">
-                <h1>{{ recipe.name }} {{ recipe.pv }} {% if recipe.blacklisted %} <span class="label label-inverse valign-middle">blacklisted</span> {% endif %}</h1>
+            <div class="pb-2 mb-3 border-bottom">
+                <h1>{{ recipe.name }} {{ recipe.pv }} {% if recipe.blacklisted %} <span class="badge bg-dark valign-middle">blacklisted</span> {% endif %}</h1>
             </div>
             {% endblock %}
 
@@ -122,7 +122,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <th>Dependencies <i class="glyphicon glyphicon-exclamation-sign" data-toggle="tooltip" title="NOTE: Dependencies may vary based on configuration" aria-hidden="true"></i></th>
+                            <th>Dependencies <i class="bi bi-exclamation-circle" data-bs-toggle="tooltip" title="NOTE: Dependencies may vary based on configuration" aria-hidden="true"></i></th>
                             <td>
                                 {% if staticdependencies %}
                                     <ul class="list-unstyled">
@@ -135,7 +135,7 @@
                                     <ul class="list-unstyled">
                                         {% for pc in packageconfigs %}
                                             {% for dep in pc.dynamicbuilddep_set.all %}
-                                            <li> {{dep.name}} <i class="glyphicon glyphicon-cog" data-toggle="tooltip" title="If &quot;{{pc.feature}}&quot; is set in PACKAGECONFIG" aria-hidden="true"></i></li>
+                                            <li> {{dep.name}} <i class="bi bi-gear" data-bs-toggle="tooltip" title="If &quot;{{pc.feature}}&quot; is set in PACKAGECONFIG" aria-hidden="true"></i></li>
                                             {% endfor %}
                                         {% endfor %}
                                     </ul>
@@ -262,7 +262,7 @@
 {% block scripts %}
     <script>
         $(document).ready(function() {
-            $('[data-toggle="tooltip"]').tooltip();
+            document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) { new bootstrap.Tooltip(el) });
         });
     </script>
 {% block scripts_extra %}

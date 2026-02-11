@@ -38,7 +38,7 @@
         {% else %}
         <div class="form-group">
         {% endif %}
-            <div class="control-label {% if field.required %}requiredlabel{% endif %}">
+            <div class="form-label {% if field.required %}requiredlabel{% endif %}">
                 {{ field.label_tag }}
             </div>
             <div class="controls">
@@ -48,7 +48,7 @@
     {% endfor %}
 
     <input type="submit" value="Delete account" class="btn btn-danger" />
-    <a href="{% url 'profile' %}" class="btn btn-default">Cancel</a>
+    <a href="{% url 'profile' %}" class="btn btn-outline-secondary">Cancel</a>
 </form>
 
 {% endautoescape %}

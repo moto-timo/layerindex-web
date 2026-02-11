@@ -8,7 +8,7 @@
 <form id="login_form" method="post" action="." autocomplete="off">
   {{ form.as_p }}
 
-  <input type="submit" class="btn btn-default" value="{% trans 'Log in' %}" />
+  <input type="submit" class="btn btn-outline-secondary" value="{% trans 'Log in' %}" />
   <input type="hidden" name="next" value="{{ next }}" />
   {% csrf_token %}
 </form>

@@ -29,9 +29,9 @@
                 <h2>{{ branch.short_description }}</h2>
                 {% endif %}
 
-                <a class="btn btn-large btn-primary" href="{% url 'comparison_recipe_search' branch.name %}">Recipes</a>
-                <a class="btn btn-large btn-default" href="{% url 'comparison_recipe_search' branch.name %}?q=&cover_status=!">Unmigrated Recipes</a>
-                <a class="btn btn-large btn-primary" href="{% url 'comparison_recipe_stats' branch.name %}">Stats</a>
+                <a class="btn btn-lg btn-primary" href="{% url 'comparison_recipe_search' branch.name %}">Recipes</a>
+                <a class="btn btn-lg btn-outline-secondary" href="{% url 'comparison_recipe_search' branch.name %}?q=&cover_status=!">Unmigrated Recipes</a>
+                <a class="btn btn-lg btn-primary" href="{% url 'comparison_recipe_stats' branch.name %}">Stats</a>
             </div>
 
         </div>

@@ -43,7 +43,7 @@
 	margin-top: 40px;
 }
 
-.nav > li.lead {
+.navbar-nav > li.lead {
 	margin: 5px 25px 0 5px;
 }
 
@@ -70,13 +70,13 @@ th > a, th.muted {
 
 /* Table styles */
 
-.navbar .nav > li > p {
+.navbar .navbar-nav > li > p {
 	color: #777777;
 	padding: 10px 5px;
 	margin-bottom: 0;
 }
 
-.navbar .nav > li > .secondary-info {
+.navbar .navbar-nav > li > .secondary-info {
     font-size:70%;
 }
 
@@ -108,19 +108,12 @@ th > a, th.muted {
 	background-color: #fcf8e3;
 }
 
-/* status styles */
-
-.well{
-	padding: 8px 14px 8px 14px;
-}
-
-
 /* about recipe styles */
 
 dd {
 	margin-bottom: 10px;
 }
 
-.well-transparent {
+.bg-transparent {
 	background-color: transparent;
 }

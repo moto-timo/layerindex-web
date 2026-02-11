@@ -16,27 +16,26 @@
         <div class="row">
 
             {% block navbar %}
-            <nav class="navbar navbar-default">
+            <nav class="navbar navbar-expand navbar-light bg-light">
                 <div class="container-fluid">
-                    <ul class="nav navbar-nav">
+                    <ul class="navbar-nav">
                         {% block branch_selector %}
-                        <li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                        <li class="nav-item dropdown">
+                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
                             Branch: <b>{{ url_branch }}</b>
-                            <b class="caret"></b>
                             </a>
                             <ul class="dropdown-menu">
                                 {% for branch in all_branches %}
-                                    <li><a href="{% url this_url_name branch.name %}{{ extra_url_param }}">
+                                    <li><a class="dropdown-item" href="{% url this_url_name branch.name %}{{ extra_url_param }}">
                                         {% if branch.name == url_branch %}<b>{% endif %}
                                         {{ branch }}
                                         {% if branch.name == url_branch %}</b>{% endif %}
                                     </a></li>
                                 {% endfor %}
                                 {% if comparison_branches %}
-                                    <li class="divider"></li>
+                                    <li><hr class="dropdown-divider"></li>
                                     {% for branch in comparison_branches %}
-                                        <li><a href="{% url 'comparison_recipe_search' branch.name %}">
+                                        <li><a class="dropdown-item" href="{% url 'comparison_recipe_search' branch.name %}">
                                             {% if branch.name == url_branch %}<b>{% endif %}
                                             {{ branch }}
                                             {% if branch.name == url_branch %}</b>{% endif %}
@@ -48,7 +47,7 @@
                         {% endblock %}
                     </ul>
 
-                    <ul class="nav navbar-nav">
+                    <ul class="navbar-nav">
                         {% block navs %}{% endblock %}
                     </ul>
                     {% block navs_extra %}{% endblock %}

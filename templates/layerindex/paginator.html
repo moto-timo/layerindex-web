@@ -4,14 +4,14 @@
         {% for i in page_obj|elided_page_range %}
         {% if page_obj.number == i %}
             <li class="page-item active">
-            <span aria-current="page">{{ i }}</span>
+            <span class="page-link" aria-current="page">{{ i }}</span>
             </li>
         {% else %}
             {% if i == page_obj.paginator.ELLIPSIS %}
-            <li class="pagination-ellipsis" aria-hidden="true"><span>{{ i }}</span></li>
+            <li class="pagination-ellipsis" aria-hidden="true"><span class="page-link">{{ i }}</span></li>
             {% else %}
             <li class="page-item">
-                <a href="{% page_url request i %}" aria-label="Go to page {{ i }}">{{ i }}</a>
+                <a class="page-link" href="{% page_url request i %}" aria-label="Go to page {{ i }}">{{ i }}</a>
             </li>
             {% endif %}
         {% endif %}

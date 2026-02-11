@@ -30,20 +30,20 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 <h3 id="updateDialogLabel">Update {{ branch.short_description }}</h3>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <p>Are you sure you want to update? This will likely take some time.</p>
             </div>
             <div class="modal-footer">
                 <a href="{% url 'comparison_update' branch.name %}" class="btn btn-primary">Update</a>
-                <button class="btn btn-default" id="id_layerdialog_cancel" data-dismiss="modal">Cancel</button>
+                <button class="btn btn-outline-secondary" id="id_layerdialog_cancel" data-bs-dismiss="modal">Cancel</button>
             </div>
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
 </div>
-<div class="pull-right"><a href="#updateDialog" id="id_update_btn" role="button" class="btn btn-default navbar-btn" data-toggle="modal">Update</a></div>
+<div class="float-end"><a href="#updateDialog" id="id_update_btn" role="button" class="btn btn-outline-secondary" data-bs-toggle="modal">Update</a></div>
 {% endif %}
 {% endautoescape %}
 {% endblock %}
@@ -80,9 +80,9 @@
                                     </td>
                                     <td>
                                         <div class="input-group">
-                                            <input type="text" class="form-control input-large" id="id_selectedlayers_display" value="{{ selectedlayers_display }}" />
-                                            <div class="input-group-btn">
-                                                <a href="#layerDialog" id="id_select_layers" role="button" class="btn btn-default" data-toggle="modal">...</a>
+                                            <input type="text" class="form-control form-control-lg" id="id_selectedlayers_display" value="{{ selectedlayers_display }}" />
+                                            <div>
+                                                <a href="#layerDialog" id="id_select_layers" role="button" class="btn btn-outline-secondary" data-bs-toggle="modal">...</a>
                                             </div>
                                         </div>
                                         <input type="hidden" id="id_selectedlayers" name="selectedlayers" value="{{ selectedlayers|join:"," }}" />
@@ -91,24 +91,24 @@
                                             <div class="modal-dialog" role="document">
                                                 <div class="modal-content">
                                                     <div class="modal-header">
-                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                                                         <h3 id="layerDialogLabel">Select layers to include</h3>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
                                                         <div class="form-group has-feedback has-clear">
                                                             <input type="text" class="form-control" id="layersearchtext" placeholder="search layers">
-                                                            <a class="glyphicon glyphicon-remove-sign form-control-feedback form-control-clear" id="layersearchclear" style="pointer-events: auto; text-decoration: none;cursor: pointer;"></a>
+                                                            <a class="bi bi-x-circle form-control-feedback form-control-clear" id="layersearchclear" style="pointer-events: auto; text-decoration: none;cursor: pointer;"></a>
                                                         </div>
                                                         <div class="scrolling" id="id_layerdialog_list">
                                                         </div>
                                                         <div class="buttonblock">
-                                                        <button type="button" class="btn btn-default" id="id_layerdialog_select_all">Select all</button>
-                                                        <button type="button" class="btn btn-default buttonblock-btn" id="id_layerdialog_select_none">Select none</button>
+                                                        <button type="button" class="btn btn-outline-secondary" id="id_layerdialog_select_all">Select all</button>
+                                                        <button type="button" class="btn btn-outline-secondary buttonblock-btn" id="id_layerdialog_select_none">Select none</button>
                                                         </div>
                                                     </div>
                                                     <div class="modal-footer">
-                                                        <button class="btn btn-primary" id="id_layerdialog_ok" data-dismiss="modal">OK</button>
-                                                        <button class="btn btn-default" id="id_layerdialog_cancel" data-dismiss="modal">Cancel</button>
+                                                        <button class="btn btn-primary" id="id_layerdialog_ok" data-bs-dismiss="modal">OK</button>
+                                                        <button class="btn btn-outline-secondary" id="id_layerdialog_cancel" data-bs-dismiss="modal">Cancel</button>
                                                     </div>
                                                 </div><!-- /.modal-content -->
                                             </div><!-- /.modal-dialog -->
@@ -148,9 +148,9 @@
                                     </td>
                                     <td>
                                         <div class="input-group">
-                                            <input class="form-control input-large" id="id_excludeclasses_display" type="text" value="{{ excludeclasses_display }}" />
-                                            <div class="input-group-btn">
-                                                <a href="#excludeclassDialog" id="id_select_excludeclasses" role="button" class="btn btn-default" data-toggle="modal">...</a>
+                                            <input class="form-control form-control-lg" id="id_excludeclasses_display" type="text" value="{{ excludeclasses_display }}" />
+                                            <div>
+                                                <a href="#excludeclassDialog" id="id_select_excludeclasses" role="button" class="btn btn-outline-secondary" data-bs-toggle="modal">...</a>
                                             </div>
                                         </div>
                                         <input type="hidden" id="id_excludeclasses" name="excludeclasses" value="{{ excludeclasses|join:"," }}" />
@@ -159,19 +159,19 @@
                                             <div class="modal-dialog" role="document">
                                                 <div class="modal-content">
                                                     <div class="modal-header">
-                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                                                         <h3 id="excludeclassDialogLabel">Select classes to exclude</h3>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
                                                         <div class="scrolling" id="id_excludeclassdialog_list">
                                                         </div>
                                                         <div class="buttonblock">
-                                                            <button type="button" class="btn btn-default buttonblock-btn" id="id_excludeclassdialog_select_none">Select none</button>
+                                                            <button type="button" class="btn btn-outline-secondary buttonblock-btn" id="id_excludeclassdialog_select_none">Select none</button>
                                                         </div>
                                                     </div>
                                                     <div class="modal-footer">
-                                                        <button class="btn btn-primary" id="id_excludeclassdialog_ok" data-dismiss="modal">OK</button>
-                                                        <button class="btn btn-default" id="id_excludeclassdialog_cancel" data-dismiss="modal">Cancel</button>
+                                                        <button class="btn btn-primary" id="id_excludeclassdialog_ok" data-bs-dismiss="modal">OK</button>
+                                                        <button class="btn btn-outline-secondary" id="id_excludeclassdialog_cancel" data-bs-dismiss="modal">Cancel</button>
                                                     </div>
                                                 </div><!-- /.modal-content -->
                                             </div><!-- /.modal-dialog -->
@@ -182,9 +182,9 @@
 
                             </tbody>
                         </table>
-                        <button class="btn btn-default" type="submit">Search</button>
+                        <button class="btn btn-outline-secondary" type="submit">Search</button>
                         {% block export_button %}
-                        <button class="btn btn-default" type="submit" formaction="{% url 'comparison_recipe_search_csv' branch.name %}">Export CSV</button>
+                        <button class="btn btn-outline-secondary" type="submit" formaction="{% url 'comparison_recipe_search_csv' branch.name %}">Export CSV</button>
                         {% endblock %}
                     </form>
                 </div>
@@ -250,7 +250,7 @@
                                 <td>{{ recipe.short_desc }}</td>
                                 <td>{{ recipe.section }}</td>
                             {% elif reversed %}
-                                <td><a href="{% url 'recipe' recipe.id %}">{{ recipe.name }}{% if recipe.needs_attention %} <i class="glyphicon glyphicon-exclamation-sign" data-toggle="tooltip" title="Needs attention" aria-hidden="true"></i>{% endif %}</a></td>
+                                <td><a href="{% url 'recipe' recipe.id %}">{{ recipe.name }}{% if recipe.needs_attention %} <i class="bi bi-exclamation-circle" data-bs-toggle="tooltip" title="Needs attention" aria-hidden="true"></i>{% endif %}</a></td>
                                 <td><a href="{% url 'layer_item' 'master' recipe.layerbranch.layer.name %}">{{ recipe.layerbranch.layer.name }}</a></td>
                                 <td>{{ recipe.pv }}</td>
                                 <td>{{ recipe.short_desc }}</td>
@@ -258,10 +258,10 @@
                                 <td>{% if recipe.cover_recipe %}{{ recipe.cover_recipe.get_cover_status_display }}{% endif %}</td>
                                 <td>{% if recipe.cover_recipe %}<a href="{% url 'comparison_recipe' recipe.cover_recipe.id %}">{% endif %}{{ recipe.cover_recipe.pn }}{% if recipe.cover_recipe %}</a>{% endif %}</td>
                             {% elif compare %}
-                                <td><a href="{% url 'comparison_recipe' recipe.id %}">{{ recipe.name }}{% if recipe.needs_attention %} <i class="glyphicon glyphicon-exclamation-sign" data-toggle="tooltip" title="Needs attention" aria-hidden="true"></i>{% endif %}</a></td>
+                                <td><a href="{% url 'comparison_recipe' recipe.id %}">{{ recipe.name }}{% if recipe.needs_attention %} <i class="bi bi-exclamation-circle" data-bs-toggle="tooltip" title="Needs attention" aria-hidden="true"></i>{% endif %}</a></td>
                                 <td>{{ recipe.pv|truncatechars:10 }}</td>
                                 <td>{% if recipe.patch_set.exists %}{{ recipe.patch_set.count }}{% endif %}</td>
-                                <td>{{ recipe.get_cover_status_display }}{% if recipe.cover_comment %} <a href="{% url 'comparison_recipe' recipe.id %}"><i class="glyphicon glyphicon-comment" data-toggle="tooltip" title="{{ recipe.cover_comment }}" aria-hidden="true"></i></a>{% endif %}</td>
+                                <td>{{ recipe.get_cover_status_display }}{% if recipe.cover_comment %} <a href="{% url 'comparison_recipe' recipe.id %}"><i class="bi bi-chat" data-bs-toggle="tooltip" title="{{ recipe.cover_comment }}" aria-hidden="true"></i></a>{% endif %}</td>
                                 <td>{% if recipe.cover_layerbranch %}<a href="{% url 'layer_item' 'master' recipe.cover_layerbranch.layer.name %}">{{ recipe.cover_layerbranch.layer.name }}</a>{% endif %}</td>
                                 {% if recipe.cover_pn %}
                                 <td>{% if recipe.cover_recipe %}<a href="{% url 'recipe' recipe.cover_recipe.id %}">{% endif %}{{ recipe.cover_pn }}{% if recipe.cover_recipe %}</a>{% endif %}</td>
@@ -273,7 +273,7 @@
                                 <td></td>
                                 {% endif %}
                             {% else %}
-                                <td><a href="{% block comparison_recipe_url %}{% url 'comparison_recipe' recipe.id %}{% endblock %}">{{ recipe.name }}{% if recipe.needs_attention %} <i class="glyphicon glyphicon-exclamation-sign" data-toggle="tooltip" title="Needs attention" aria-hidden="true"></i>{% endif %}</a></td>
+                                <td><a href="{% block comparison_recipe_url %}{% url 'comparison_recipe' recipe.id %}{% endblock %}">{{ recipe.name }}{% if recipe.needs_attention %} <i class="bi bi-exclamation-circle" data-bs-toggle="tooltip" title="Needs attention" aria-hidden="true"></i>{% endif %}</a></td>
                                 <td>{{ recipe.pv }}</td>
                                 <td>{{ recipe.short_desc }}</td>
                                 <td>{{ recipe.get_cover_desc }}</td>
@@ -414,7 +414,7 @@
         $('#id_selectedlayers_display').prop('readonly', true)
         $('#id_excludeclasses_display').prop('readonly', true)
         update_filters_enabled()
-        $('[data-toggle="tooltip"]').tooltip();
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) { new bootstrap.Tooltip(el) });
         firstfield = $("#search-form input:text").first()
         if( ! firstfield.val() )
             firstfield.focus()

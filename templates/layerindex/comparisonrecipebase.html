@@ -33,7 +33,7 @@
         <div class="row">
 
             {% block page_heading %}
-            <div class="page-header">
+            <div class="pb-2 mb-3 border-bottom">
                 <h1>{{ recipe.name }} {{ recipe.pv }}</h1>
             </div>
             {% endblock %}
@@ -51,7 +51,7 @@
                             <th>Name</th>
                             <td>{{ recipe.name }}</td>
                             <td>{% if cover_recipe %}{{ cover_recipe.name }} ({{ recipe.get_cover_status_display }}{% if recipe.cover_comment %} - {{ recipe.cover_comment }}{% endif %}){% else %}{{ recipe.get_cover_status_display }}{% if recipe.cover_comment %} - {{ recipe.cover_comment }}{% endif %}{% endif %}{% block to_recipe_extra %}{% endblock %}
-                            <div class="pull-right">
+                            <div class="float-end">
                             {% block selectbuttons %}
                             <a href="#" class="btn btn-info">Select...</a>
                             {% endblock %}
@@ -189,7 +189,7 @@
                             <tbody>
                                 {% for patch in rcp.patch_set.all %}
                                 <tr>
-                                    <td><a href="{{ patch.vcs_web_url }}">{{ patch.src_path }}</a>{% if not patch.applied %} <i class="glyphicon glyphicon-ban-circle not-applied" aria-hidden="true"></i>{% endif %}</td>
+                                    <td><a href="{{ patch.vcs_web_url }}">{{ patch.src_path }}</a>{% if not patch.applied %} <i class="bi bi-slash-circle not-applied" aria-hidden="true"></i>{% endif %}</td>
                                     {% block patch_status %}
                                     {% if not rcp.layerbranch.branch.comparison %}
                                     <td>{{ patch.get_status_display }} {{ patch.status_extra | urlize }}</td>
@@ -232,10 +232,10 @@
 {% block scripts %}
     <script>
         $(document).ready(function() {
-            $('[data-toggle="tooltip"]').tooltip();
+            document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) { new bootstrap.Tooltip(el) });
             $('#id_cover_status').change(enable_value_field)
             enable_value_field()
-            $('.not-applied').tooltip({title:"Not being applied in {{ branch }}"});
+            document.querySelectorAll('.not-applied').forEach(function(el) { new bootstrap.Tooltip(el, {title: "Not being applied in {{ branch }}"}) });
         });
         enable_value_field = function() {
             cover_status = $('#id_cover_status').val()

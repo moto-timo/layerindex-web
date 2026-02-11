@@ -25,22 +25,22 @@
 
         <div class="container-fluid">
             <div class="row">
-                <div class="page-header">
+                <div class="pb-2 mb-3 border-bottom">
                     <h1>{{ layeritem.name }}
                         {% if layerbranch.yp_compatible_version %}
                         <a href="{{layerbranch.yp_compatible_version.link_url }}"><img src="{{layerbranch.yp_compatible_version.image_url}}" alt="{{layerbranch.yp_compatible_version.description}}" class="yp-icon" title="{{layerbranch.yp_compatible_version.description}}"></a>
                         {% endif %}
                         {% if layeritem.status == "N" %}
-                            <span class="label label-warning">Unpublished</span>
+                            <span class="badge bg-warning text-dark">Unpublished</span>
                         {% else %}
-                            <span class="label label-info">Published</span>
+                            <span class="badge bg-info">Published</span>
                         {% endif %}
                         {% if user.is_authenticated %}
-                            <span class="pull-right">
+                            <span class="float-end">
                                 {% if perms.layerindex.publish_layer or useredit %}
-                                    <a href="{% url 'edit_layer' 'master' layeritem.name %}?returnto=layer_review" class="btn btn-default">Edit layer</a>
+                                    <a href="{% url 'edit_layer' 'master' layeritem.name %}?returnto=layer_review" class="btn btn-outline-secondary">Edit layer</a>
                                     {% if layeritem.layernote_set.count == 0 %}
-                                        <a href="{% url 'add_layernote' layeritem.name %}" class="btn btn-default">Add note</a>
+                                        <a href="{% url 'add_layernote' layeritem.name %}" class="btn btn-outline-secondary">Add note</a>
                                     {% endif %}
                                 {% endif %}
                                 {% if layeritem.status == "N" and perms.layerindex.publish_layer %}
@@ -64,8 +64,8 @@
                         <p>{{ note.text }}</p>
                         {% if perms.layerindex.publish_layer or useredit %}
                             <p>
-                                <a href="{% url 'edit_layernote' layeritem.name note.pk %}" class="btn btn-default">Edit note</a>
-                                <a href="{% url 'delete_layernote' layeritem.name note.pk %}" class="btn btn-default">Delete note</a>
+                                <a href="{% url 'edit_layernote' layeritem.name note.pk %}" class="btn btn-outline-secondary">Edit note</a>
+                                <a href="{% url 'delete_layernote' layeritem.name note.pk %}" class="btn btn-outline-secondary">Delete note</a>
                             </p>
                         {% endif %}
                     </div>
@@ -113,20 +113,20 @@
                                 <th>Repo web interface test links</th>
                                 <td>
                                     {% if layeritem.vcs_web_file_base_url %}
-                                    <span class="label label-danger">
+                                    <span class="badge bg-danger">
                                         <a href="{{ layerbranch.test_file_url }}">test file link</a>
                                     </span>
                                     {% else %}
-                                    <span class="label label-default">
+                                    <span class="badge bg-secondary">
                                         No base file URL provided
                                     </span>
                                     {% endif %}
                                     {% if layeritem.vcs_web_tree_base_url %}
-                                    <span class="label label-danger">
+                                    <span class="badge bg-danger">
                                         <a href="{{ layerbranch.test_tree_url }}">test tree link</a>
                                     </span>
                                     {% else %}
-                                    <span class="label label-default">
+                                    <span class="badge bg-secondary">
                                         No base tree URL provided
                                     </span>
                                     {% endif %}

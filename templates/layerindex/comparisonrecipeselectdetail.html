@@ -15,9 +15,9 @@
 -->
 
                 {% block page_heading %}
-                <div class="page-header">
+                <div class="pb-2 mb-3 border-bottom">
                     <h1>{{ recipe.name }} {{ recipe.pv }}</h1>
-                <div class="pull-right"><a href="#selectRecipeDialog" role="button" data-toggle="modal" class="select_recipe_button btn {% if recipe.id == existing_cover_recipe.id %}btn-primary{% else %}btn-default{% endif %}" recipe-pn="{{ recipe.pn }}" recipe-layerbranch="{{ recipe.layerbranch.id }}">Select</a> <a href="javascript:history.back()" class="btn btn-default">Back</a></div>
+                <div class="float-end"><a href="#selectRecipeDialog" role="button" data-bs-toggle="modal" class="select_recipe_button btn {% if recipe.id == existing_cover_recipe.id %}btn-primary{% else %}btn-outline-secondary{% endif %}" recipe-pn="{{ recipe.pn }}" recipe-layerbranch="{{ recipe.layerbranch.id }}">Select</a> <a href="javascript:history.back()" class="btn btn-outline-secondary">Back</a></div>
                 </div>
 
                                         <form id="comparison_form" class="form-inline" method="post">
@@ -25,8 +25,8 @@
                                             <div class="modal-dialog" role="document">
                                                 <div class="modal-content">
                                                     <div class="modal-header">
-                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                                                         <h3 id="selectRecipeDialogLabel">Select <span id="id_span_select_recipe">recipe</span> to match {{ select_for.pn }}</h3>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
                                                             {% csrf_token %}
@@ -63,8 +63,8 @@
                                                             {% endif %}
                                                     </div>
                                                     <div class="modal-footer">
-                                                        <button class="btn btn-primary" id="id_selectrecipedialog_save" data-dismiss="modal">Save</button>
-                                                        <button class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                                        <button class="btn btn-primary" id="id_selectrecipedialog_save" data-bs-dismiss="modal">Save</button>
+                                                        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                                                     </div>
                                                 </div><!-- /.modal-content -->
                                             </div><!-- /.modal-dialog -->
@@ -87,7 +87,7 @@
     });
     $('#id_selectrecipedialog_save').click(function (e) {
         $('#comparison_form').submit()
-        $('#selectRecipeDialog').modal('hide')
+        bootstrap.Modal.getInstance(document.getElementById('selectRecipeDialog')).hide()
     });
     $(document).ready(function() {
         $('#id_selectrecipedialog-cover_status option[value="N"]').remove();

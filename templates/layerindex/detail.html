@@ -22,29 +22,29 @@
 
 {% autoescape on %}
         <ul class="breadcrumb">
-            <li><a href="{% url 'layer_list' url_branch %}">{{ layerbranch.branch.name }}</a></li>
-            <li class="active">{{ layeritem.name }}</li>
+            <li class="breadcrumb-item"><a href="{% url 'layer_list' url_branch %}">{{ layerbranch.branch.name }}</a></li>
+            <li class="breadcrumb-item active">{{ layeritem.name }}</li>
         </ul>
 
         <div class="container-fluid">
             <div class="row">
-                <div class="page-header">
+                <div class="pb-2 mb-3 border-bottom">
                     <h1>{{ layeritem.name }}
                         {% if layerbranch.yp_compatible_version %}
                         <a href="{{layerbranch.yp_compatible_version.link_url}}"><img src="{{layerbranch.yp_compatible_version.image_url}}" alt="{{layerbranch.yp_compatible_version.description}}" class="yp-icon" title="{{layerbranch.yp_compatible_version.description}}"></a>
                         {% endif %}
                         {% if layeritem.status == "N" %}
-                            <span class="label label-warning">Unpublished</span>
+                            <span class="badge bg-warning text-dark">Unpublished</span>
                         {% endif %}
                         {% if user.is_authenticated %}
-                            <span class="pull-right">
+                            <span class="float-end">
                                 {% if user.is_staff %}
                                     <a href="{% url 'update_layer' url_branch layeritem.name %}" class="btn btn-info">Update layer</a>
                                 {% endif %}
                                 {% if perms.layerindex.publish_layer or useredit %}
-                                    <a href="{% url 'edit_layer' url_branch layeritem.name %}" class="btn btn-default">Edit layer</a>
+                                    <a href="{% url 'edit_layer' url_branch layeritem.name %}" class="btn btn-outline-secondary">Edit layer</a>
                                     {% if layeritem.layernote_set.count == 0 %}
-                                        <a href="{% url 'add_layernote' layeritem.name %}" class="btn btn-default">Add note</a>
+                                        <a href="{% url 'add_layernote' layeritem.name %}" class="btn btn-outline-secondary">Add note</a>
                                     {% endif %}
                                 {% endif %}
                             </span>
@@ -69,8 +69,8 @@
                         {% if perms.layerindex.publish_layer or useredit %}
                             <br><br>
                             <p>
-                                <a href="{% url 'edit_layernote' layeritem.name note.pk %}" class="btn btn-default">Edit note</a>
-                                <a href="{% url 'delete_layernote' layeritem.name note.pk %}" class="btn btn-default">Delete note</a>
+                                <a href="{% url 'edit_layernote' layeritem.name note.pk %}" class="btn btn-outline-secondary">Edit note</a>
+                                <a href="{% url 'delete_layernote' layeritem.name note.pk %}" class="btn btn-outline-secondary">Delete note</a>
                             </p>
                         {% endif %}
                     </div>
@@ -82,12 +82,12 @@
                     <p style="white-space: pre-wrap">{{ layeritem.description }}</p>
                     <p>
                         {% if layeritem.usage_url %}
-                            <span class="label label-info">
+                            <span class="badge bg-info">
                                 <a href="{{ layerbranch.get_usage_url }}">Setup information</a>
                             </span>
                         {% endif %}
                         {% if layeritem.mailing_list_url %}
-                            <span class="label label-info">
+                            <span class="badge bg-info">
                                 <a href="{{ layeritem.mailing_list_url }}">Mailing list</a>
                             </span>
                         {% endif %}
@@ -95,9 +95,9 @@
 
                     <h3>Git repository</h3>
 
-                    <p><span data-toggle="tooltip" title="Select URL"><i class="glyphicon glyphicon-circle-arrow-right selectallicon" for="vcs_url" id="vcs_url_select" aria-hidden="true"></i></span><span id="vcs_url" class="copyable">{{ layeritem.vcs_url }}</span>
+                    <p><span data-bs-toggle="tooltip" title="Select URL"><i class="bi bi-arrow-right-circle selectallicon" for="vcs_url" id="vcs_url_select" aria-hidden="true"></i></span><span id="vcs_url" class="copyable">{{ layeritem.vcs_url }}</span>
                         {% if layeritem.vcs_web_url %}
-                            <span class="label label-info">
+                            <span class="badge bg-info">
                                 <a href="{{ layeritem.vcs_web_url }}">web repo</a>
                             </span>
                         {% endif %}
@@ -111,9 +111,9 @@
 
                     {% if layerbranch.vcs_subdir %}
                         <h4>Subdirectory</h4>
-                        <p><span data-toggle="tooltip" title="Select subdirectory"><i class="glyphicon glyphicon-circle-arrow-right selectallicon" for="vcs_subdir" id="vcs_subdir_select" aria-hidden="true"></i></span><span id="vcs_subdir" class="copyable">{{ layerbranch.vcs_subdir }}</span>
+                        <p><span data-bs-toggle="tooltip" title="Select subdirectory"><i class="bi bi-arrow-right-circle selectallicon" for="vcs_subdir" id="vcs_subdir_select" aria-hidden="true"></i></span><span id="vcs_subdir" class="copyable">{{ layerbranch.vcs_subdir }}</span>
                             {% if layerbranch.tree_url %}
-                                <span class="label label-info">
+                                <span class="badge bg-info">
                                     <a href="{{ layerbranch.tree_url }}">web subdirectory</a>
                                 </span>
                             {% endif %}
@@ -137,7 +137,7 @@
                                 <span>({{ maintainer.responsibility }})</span>
                             {% endif %}
 
-                            <span class="label label-info">
+                            <span class="badge bg-info">
                                 <a href="mailto:{{ maintainer.email }}">email</a>
                             </span>
                         </li>
@@ -158,9 +158,9 @@
 
                 </div> <!-- end of col-md-7 -->
 
-                <div class="col-md-4 pull-right description">
+                <div class="col-md-4 float-end description">
                     {% if layerbranch.dependencies_set.count > 0 %}
-                        <div class="well dependency-well">
+                        <div class="border rounded p-3 dependency-well">
                             {% if layerbranch.get_required.count > 0 %}
                                 <h3>Dependencies </h3>
                                 <p>The {{ layeritem.name }} layer depends upon:</p>
@@ -193,41 +193,39 @@
 
         <ul class="nav nav-tabs" id="layertabbar">
             {% if layerbranch.recipe_set.count > 0 %}
-                <li><a href="#recipes" data-toggle="tab">Recipes</a></li>
+                <li class="nav-item"><a class="nav-link" href="#recipes" data-bs-toggle="tab">Recipes</a></li>
             {% endif %}
             {% if machines.count > 0 %}
-                <li><a href="#machines" data-toggle="tab">Machines</a></li>
+                <li class="nav-item"><a class="nav-link" href="#machines" data-bs-toggle="tab">Machines</a></li>
             {% endif %}
             {% if appends.count > 0 %}
-                <li><a href="#appends" data-toggle="tab">Appends</a></li>
+                <li class="nav-item"><a class="nav-link" href="#appends" data-bs-toggle="tab">Appends</a></li>
             {% endif %}
             {% if classes.count > 0 %}
-                <li><a href="#classes" data-toggle="tab">Classes</a></li>
+                <li class="nav-item"><a class="nav-link" href="#classes" data-bs-toggle="tab">Classes</a></li>
             {% endif %}
             {% if distros.count > 0 %}
-                <li><a href="#distros" data-toggle="tab">Distros</a></li>
+                <li class="nav-item"><a class="nav-link" href="#distros" data-bs-toggle="tab">Distros</a></li>
             {% endif %}
             {% if updates.count > 0 %}
-                <li><a href="#updates" data-toggle="tab">Updates</a></li>
+                <li class="nav-item"><a class="nav-link" href="#updates" data-bs-toggle="tab">Updates</a></li>
             {% endif %}
         </ul>
 
         <div class="tab-content">
             {% if layerbranch.recipe_set.count > 0 %}
                 <div class="tab-pane" id="recipes">
-                    <nav class="navbar navbar-default">
+                    <nav class="navbar navbar-expand navbar-light bg-light">
                         <div class="container-fluid">
-                            <div class="navbar-header">
-                                <a class="navbar-brand">{{ layeritem.name }} recipes <span class="text-muted">({{ layerbranch.sorted_recipes.count }})</span></a>
-                            </div>
+                            <a class="navbar-brand">{{ layeritem.name }} recipes <span class="text-muted">({{ layerbranch.sorted_recipes.count }})</span></a>
 
-                            <div class="navbar-right">
-                                <a href="{% url 'layer_export_recipes_csv' layerbranch.branch.name layerbranch.layer.name %}" class="btn btn-default navbar-btn"><i class="glyphicon glyphicon-file" aria-hidden="true"></i> Export CSV</a>
+                            <div class="ms-auto">
+                                <a href="{% url 'layer_export_recipes_csv' layerbranch.branch.name layerbranch.layer.name %}" class="btn btn-outline-secondary"><i class="bi bi-file-earmark" aria-hidden="true"></i> Export CSV</a>
 
-                                <form action="" class="navbar-form pull-right" id="filter-form">
+                                <form action="" class="d-flex" id="filter-form">
                                     <div class="form-group has-feedback has-clear">
                                         <input type="text" placeholder="Search recipes" class="form-control" id="recipesearchtext">
-                                        <a class="glyphicon glyphicon-remove-sign form-control-feedback form-control-clear" id="recipesearchclear" style="pointer-events: auto; text-decoration: none;cursor: pointer;"></a>
+                                        <a class="bi bi-x-circle form-control-feedback form-control-clear" id="recipesearchclear" style="pointer-events: auto; text-decoration: none;cursor: pointer;"></a>
                                     </div>
                                 </form>
                             </div>
@@ -245,7 +243,7 @@
                         <tbody>
                             {% for recipe in layerbranch.sorted_recipes %}
                                 <tr>
-                                    <td><a href="{% url 'recipe' recipe.id %}">{{ recipe.name }}</a>{% if 'image' in recipe.inherits.split %} <i class="glyphicon glyphicon-hdd"></i>{% endif %}{% if recipe.blacklisted %}<span class="label label-inverse" title="{{ recipe.blacklisted }}">blacklisted</span>{% endif %}</td>
+                                    <td><a href="{% url 'recipe' recipe.id %}">{{ recipe.name }}</a>{% if 'image' in recipe.inherits.split %} <i class="bi bi-hdd"></i>{% endif %}{% if recipe.blacklisted %}<span class="badge bg-dark" title="{{ recipe.blacklisted }}">blacklisted</span>{% endif %}</td>
                                     <td>{{ recipe.pv }}</td>
                                     <td class="col-md-8">{{ recipe.short_desc }}</td>
                                 </tr>
@@ -256,11 +254,9 @@
             {% endif %}
             {% if machines.count > 0 %}
                 <div class="tab-pane" id="machines">
-                    <nav class="navbar navbar-default">
+                    <nav class="navbar navbar-expand navbar-light bg-light">
                         <div class="container-fluid">
-                            <div class="navbar-header">
-                                <a class="navbar-brand">{{ layeritem.name }} machines <span class="text-muted">({{ machines.count }})</span></a>
-                            </div>
+                            <a class="navbar-brand">{{ layeritem.name }} machines <span class="text-muted">({{ machines.count }})</span></a>
                         </div>
                     </nav>
 
@@ -278,11 +274,9 @@
             {% endif %}
             {% if appends.count > 0 %}
                 <div class="tab-pane" id="appends">
-                    <nav class="navbar navbar-default">
+                    <nav class="navbar navbar-expand navbar-light bg-light">
                         <div class="container-fluid">
-                            <div class="navbar-header">
-                                <a class="navbar-brand">{{ layeritem.name }} bbappends <span class="text-muted">({{ appends.count }})</span></a>
-                            </div>
+                            <a class="navbar-brand">{{ layeritem.name }} bbappends <span class="text-muted">({{ appends.count }})</span></a>
                         </div>
                     </nav>
 
@@ -299,11 +293,9 @@
             {% endif %}
             {% if classes.count > 0 %}
                 <div class="tab-pane" id="classes">
-                    <nav class="navbar navbar-default">
+                    <nav class="navbar navbar-expand navbar-light bg-light">
                         <div class="container-fluid">
-                            <div class="navbar-header">
-                                <a class="navbar-brand">{{ layeritem.name }} classes <span class="text-muted">({{ classes.count }})</span></a>
-                            </div>
+                            <a class="navbar-brand">{{ layeritem.name }} classes <span class="text-muted">({{ classes.count }})</span></a>
                         </div>
                     </nav>
 
@@ -313,7 +305,7 @@
                                 <tr>
                                     <td>
                                         <a href="{{ class.vcs_web_url }}">{{ class.name }}</a>
-                                        <span class="badge badge-info" id="id_bbclass_typ">{{ class.bbclass_type }}</span>
+                                        <span class="badge bg-info" id="id_bbclass_typ">{{ class.bbclass_type }}</span>
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -323,11 +315,9 @@
             {% endif %}
             {% if distros.count > 0 %}
                 <div class="tab-pane" id="distros">
-                    <nav class="navbar navbar-default">
+                    <nav class="navbar navbar-expand navbar-light bg-light">
                         <div class="container-fluid">
-                            <div class="navbar-header">
-                                <a class="navbar-brand">{{ layeritem.name }} distros <span class="text-muted">({{ distros.count }})</span></a>
-                            </div>
+                            <a class="navbar-brand">{{ layeritem.name }} distros <span class="text-muted">({{ distros.count }})</span></a>
                         </div>
                     </nav>
 
@@ -345,11 +335,9 @@
             {% endif %}
             {% if updates.count > 0 %}
                 <div class="tab-pane" id="updates">
-                    <nav class="navbar navbar-default">
+                    <nav class="navbar navbar-expand navbar-light bg-light">
                         <div class="container-fluid">
-                            <div class="navbar-header">
-                                <a class="navbar-brand">{{ layeritem.name }} updates</a>
-                            </div>
+                            <a class="navbar-brand">{{ layeritem.name }} updates</a>
                         </div>
                     </nav>
 
@@ -371,8 +359,8 @@
                                             <span class="text-muted">{{ update.started }}{% if update.update.reload %} (reload){% endif%}</span>
                                         {% endif %}
                                     </td>
-                                    <td>{% if update.errors %}<span class="badge badge-important">{{ update.errors }}</span>{% endif %}</td>
-                                    <td>{% if update.warnings %}<span class="badge badge-warning">{{ update.warnings }}</span>{% endif %}</td>
+                                    <td>{% if update.errors %}<span class="badge bg-danger">{{ update.errors }}</span>{% endif %}</td>
+                                    <td>{% if update.warnings %}<span class="badge bg-warning text-dark">{{ update.warnings }}</span>{% endif %}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -380,7 +368,7 @@
                 </div>
             {% endif %}
         </div>
- 
+
 
 {% endautoescape %}
 
@@ -434,18 +422,17 @@
                     $('#' + $(this).attr('for')).selectText();
                 });
 
-                $('#layertabbar a:first').tab('show');
+                new bootstrap.Tab(document.querySelector('#layertabbar a:first-child')).show();
                 $('#layertabbar a').click(function (e) {
                     e.preventDefault();
-                    $(this).tab('show');
+                    new bootstrap.Tab(this).show();
                 })
 
-                $('.glyphicon-hdd').tooltip({title:"Inherits image"});
-                $('.label-inverse').tooltip();
+                document.querySelectorAll('.bi-hdd').forEach(function(el) { new bootstrap.Tooltip(el, {title: "Inherits image"}) });
+                document.querySelectorAll('.badge.bg-dark').forEach(function(el) { new bootstrap.Tooltip(el) });
             });
 
             clearRecipeSearch();
         });
     </script>
 {% endblock %}
-

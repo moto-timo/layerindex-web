@@ -25,7 +25,7 @@
 
 
 <h2>{{ update.started }} {% if update.reload %}(reload){% endif %}
-<span id="status-label" class="label {% if update.finished %}{% if update.retcode %}label-danger{% else %}label-success{% endif %}{% endif %} pull-right">{% if update.finished %}{% if update.retcode < 0 %}TERMINATED ({{ update.retcode }}){% elif update.retcode %}FAILED{% endif %}{% endif %}</span>
+<span id="status-label" class="badge {% if update.finished %}{% if update.retcode %}bg-danger{% else %}bg-success{% endif %}{% endif %} float-end">{% if update.finished %}{% if update.retcode < 0 %}TERMINATED ({{ update.retcode }}){% elif update.retcode %}FAILED{% endif %}{% endif %}</span>
 </h2>
 
 {% if update.log %}
@@ -39,7 +39,7 @@
             <tr><td{% if layerupdate.errors > 0 or layerupdate.retcode != 0 %} class="error"{% elif layerupdate.warnings %} class="warning"{% endif %}>
             {% if layerbranch_exists %}<a href="{% url 'layer_item' layerupdate.branch.name layerupdate.layer.name %}">{% endif %}<strong>{{ layerupdate.layer.name }} {{ layerupdate.branch.name }}</strong>{% if layerbranch_exists %}</a>{% endif %}
             {% if layerupdate.vcs_before_rev != layerupdate.vcs_after_rev %}
-            <span class="pull-right">
+            <span class="float-end">
                 {% if layerbranch_exists %}
                 {% with before_url=layerupdate.vcs_before_commit_url after_url=layerupdate.vcs_after_commit_url %}
                 {% if before_url %}<a href="{{ before_url }}">{% endif %}{{ layerupdate.vcs_before_rev|truncatesimple:10 }}{% if before_url %}</a>{% endif %} &rarr; {% if after_url %}<a href="{{ after_url }}">{% endif %}{{ layerupdate.vcs_after_rev|truncatesimple:10 }}{% if after_url %}</a>{% endif %}
@@ -80,11 +80,9 @@
 {% endblock %}
 {% if updates.count > 0 %}
 <div class="tab-pane" id="updates">
-    <nav class="navbar navbar-default">
+    <nav class="navbar navbar-expand navbar-light bg-light">
         <div class="container-fluid">
-            <div class="navbar-header">
-                <a class="navbar-brand">{{ layeritem.name }} updates</a>
-            </div>
+            <a class="navbar-brand">{{ layeritem.name }} updates</a>
         </div>
     </nav>
 
@@ -106,8 +104,8 @@
                             <span class="text-muted">{{ update.started }}{% if update.update.reload %} (reload){% endif%}</span>
                         {% endif %}
                     </td>
-                    <td>{% if update.errors %}<span class="badge badge-important">{{ update.errors }}</span>{% endif %}</td>
-                    <td>{% if update.warnings %}<span class="badge badge-warning">{{ update.warnings }}</span>{% endif %}</td>
+                    <td>{% if update.errors %}<span class="badge bg-danger">{{ update.errors }}</span>{% endif %}</td>
+                    <td>{% if update.warnings %}<span class="badge bg-warning text-dark">{{ update.warnings }}</span>{% endif %}</td>
                 </tr>
             {% endfor %}
         </tbody>

@@ -25,7 +25,7 @@
 
 
 <h2>{{ update.started }} {% if update.reload %}(reload){% endif %}
-<span id="status-label" class="label {% if update.finished %}{% if update.retcode %}label-danger{% else %}label-success{% endif %}{% endif %} pull-right">{% if update.finished %}{% if update.retcode < 0 %}TERMINATED ({{ update.retcode }}){% elif update.retcode %}FAILED{% endif %}{% endif %}</span>
+<span id="status-label" class="badge {% if update.finished %}{% if update.retcode %}bg-danger{% else %}bg-success{% endif %}{% endif %} float-end">{% if update.finished %}{% if update.retcode < 0 %}TERMINATED ({{ update.retcode }}){% elif update.retcode %}FAILED{% endif %}{% endif %}</span>
 </h2>
 
 {% if update.log %}
@@ -39,7 +39,7 @@
             <tr><td{% if layerupdate.errors > 0 or layerupdate.retcode != 0 %} class="error"{% elif layerupdate.warnings %} class="warning"{% endif %}>
             {% if layerbranch_exists %}<a href="{% url 'layer_item' layerupdate.branch.name layerupdate.layer.name %}">{% endif %}<strong>{{ layerupdate.layer.name }} {{ layerupdate.branch.name }}</strong>{% if layerbranch_exists %}</a>{% endif %}
             {% if layerupdate.vcs_before_rev != layerupdate.vcs_after_rev %}
-            <span class="pull-right">
+            <span class="float-end">
                 {% if layerbranch_exists %}
                 {% with before_url=layerupdate.vcs_before_commit_url after_url=layerupdate.vcs_after_commit_url %}
                 {% if before_url %}<a href="{{ before_url }}">{% endif %}{{ layerupdate.vcs_before_rev|truncatesimple:10 }}{% if before_url %}</a>{% endif %} &rarr; {% if after_url %}<a href="{{ after_url }}">{% endif %}{{ layerupdate.vcs_after_rev|truncatesimple:10 }}{% if after_url %}</a>{% endif %}

@@ -34,9 +34,9 @@
                     <form id="filter-form" action="{% url 'class_search' url_branch %}" method="get">
                         <div class="input-group col-md-6">
                             <input type="text" class="form-control" id="id_search_text" placeholder="Search classes" name="q" value="{{ search_keyword }}" />
-                            <div class="input-group-btn">
-                                <button class="btn btn-default" type="submit" name="search" value="1">search</button>
-                                <button class="btn btn-default" type="submit" name="browse" value="1" id="id_browse_btn">browse</button>
+                            <div>
+                                <button class="btn btn-outline-secondary" type="submit" name="search" value="1">search</button>
+                                <button class="btn btn-outline-secondary" type="submit" name="browse" value="1" id="id_browse_btn">browse</button>
                             </div>
                         </div>
                     </form>
@@ -56,7 +56,7 @@
                             <tr>
                                 <td>
                                     <a href="{{ class.vcs_web_url }}">{{ class.name }}</a>
-                                     <span class="badge badge-info" id="id_bbclass_type">{{ class.bbclass_type }}</span>
+                                     <span class="badge bg-info" id="id_bbclass_type">{{ class.bbclass_type }}</span>
                                 </td>
                                 <td><a href="{% url 'layer_item' url_branch class.layerbranch.layer.name %}">{{ class.layerbranch.layer.name }}</a></td>
                             </tr>
