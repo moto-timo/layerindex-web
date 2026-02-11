@@ -198,6 +198,17 @@ padding: 8px;
     margin-left: 10px;
 }
 
+/* Restore BS3-style active tab highlighting on the second-level navbar */
+.navbar-nav .nav-link.active {
+    background-color: #e7e7e7;
+    border-radius: 4px;
+}
+
+.navbar-nav .nav-link:hover {
+    background-color: #e7e7e7;
+    border-radius: 4px;
+}
+
 .buttonblock {
     margin-top: 10px;
     margin-right: 10px;
