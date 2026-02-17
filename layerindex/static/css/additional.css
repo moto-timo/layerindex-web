@@ -11,6 +11,15 @@ a:hover {
     text-decoration: underline;
 }
 
+/* BS5 .btn-link defaults to underline; restore BS3 no-underline style */
+.btn-link {
+    text-decoration: none;
+}
+
+.btn-link:hover {
+    text-decoration: underline;
+}
+
 .top-padded { 
     padding-top: 65px; 
 }
