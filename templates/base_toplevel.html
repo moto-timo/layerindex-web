@@ -18,7 +18,7 @@
             {% block navbar %}
             <nav class="navbar navbar-expand navbar-light bg-light">
                 <div class="container-fluid">
-                    <ul class="navbar-nav">
+                    <ul class="navbar-nav justify-content-start">
                         {% block branch_selector %}
                         <li class="nav-item dropdown">
                             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
@@ -45,9 +45,6 @@
                             </ul>
                         </li>
                         {% endblock %}
-                    </ul>
-
-                    <ul class="navbar-nav">
                         {% block navs %}{% endblock %}
                     </ul>
                     {% block navs_extra %}{% endblock %}
