@@ -148,11 +148,11 @@
             </div>
         </div>
 
-    <span class="float-end">
+    <div class="d-flex justify-content-end">
     <a class="btn btn-outline-secondary" href="{% url 'branch_comparison_plain' %}?{{ request.GET.urlencode }}"><i class="bi bi-file-earmark"></i> Plain text</a>
     <a class="btn btn-outline-secondary" href="{% url 'branch_comparison_rst' %}?{{ request.GET.urlencode }}"><i class="bi bi-file-earmark"></i> rST</a>
     <a class="btn btn-outline-secondary" href="{% url 'branch_comparison_csv' %}?{{ request.GET.urlencode }}"><i class="bi bi-file-earmark"></i> CSV text</a>
-    </span>
+    </div>
 
 
 {% endautoescape %}
