@@ -36,9 +36,11 @@ def has_layerseries_compat(layerconf_path):
     except FileNotFoundError:
         return False
 
-    # Match LAYERSERIES_COMPAT assignment (= or .= or += or ?= etc.)
+    # Match LAYERSERIES_COMPAT_<collection> assignment (= or .= or += or ?= etc.)
     # accounting for possible spaces and different assignment operators
-    if re.search(r'^LAYERSERIES_COMPAT\s*[\+\.\?]*=', content, re.MULTILINE):
+    match = re.search(r'^LAYERSERIES_COMPAT_\S+\s*[\+\.\?]*=', content, re.MULTILINE)
+    if match:
+        logger.debug("Found: %s" % match.group(0))
         return True
     return False
 
