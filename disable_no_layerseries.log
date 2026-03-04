@@ -1,0 +1,167 @@
+layers@updatelayers:/opt/layerindex$ ./disable_no_layerseries.py --dry-run
+INFO: Disabling updates for meta-bug (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-bug
+INFO: Disabling updates for meta-efikamx (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-efikamx
+INFO: Disabling updates for meta-igep (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-igep
+INFO: Disabling updates for meta-kirkwood (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-kirkwood
+INFO: Disabling updates for meta-netbookpro (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-netbookpro
+INFO: Disabling updates for meta-nslu2 (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-nslu2
+INFO: Disabling updates for meta-openpandora (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-openpandora
+INFO: Disabling updates for meta-ada (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-ada
+INFO: Disabling updates for meta-buglabs (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-buglabs
+INFO: Disabling updates for meta-chicken (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-chicken
+INFO: Disabling updates for meta-kde4 (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-kde4
+INFO: Disabling updates for meta-opie (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-opie
+INFO: Disabling updates for meta-smalltalk (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-smalltalk
+INFO: Disabling updates for meta-web-kiosk (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-web-kiosk
+INFO: Disabling updates for meta-guacamayo (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-guacamayo
+INFO: Disabling updates for meta-micro (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-micro
+INFO: Disabling updates for meta-slugos (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-slugos
+INFO: Disabling updates for meta-tlk (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-tlk
+INFO: Disabling updates for meta-cubox (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-cubox
+INFO: Disabling updates for meta-beagleboard (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-beagleboard
+INFO: Disabling updates for meta-netmodule (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-netmodule
+INFO: Disabling updates for meta-oracle-java (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-oracle-java
+INFO: Disabling updates for meta-hamradio (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-hamradio
+INFO: Disabling updates for meta-clutter (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-clutter
+INFO: Disabling updates for meta-kernel-dev (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-kernel-dev
+INFO: Disabling updates for meta-eca (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-eca
+INFO: Disabling updates for meta-ro-rootfs (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-ro-rootfs
+INFO: Disabling updates for meta-beagleboard-extras (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-beagleboard-extras
+INFO: Disabling updates for meta-x10 (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-x10
+INFO: Disabling updates for meta-ouya (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-ouya
+INFO: Disabling updates for meta-ci (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-ci
+INFO: Disabling updates for meta-openclovis (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-openclovis
+INFO: Disabling updates for meta-uav (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-uav
+INFO: Disabling updates for meta-netmodule-extras (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-netmodule-extras
+INFO: Disabling updates for meta-exynos (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-exynos
+INFO: Disabling updates for meta-crosswalk (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-crosswalk
+INFO: Disabling updates for meta-audio (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-audio
+INFO: Disabling updates for meta-go (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-go
+INFO: Disabling updates for meta-parallella (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-parallella
+INFO: Disabling updates for meta-openhab (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-openhab
+INFO: Disabling updates for meta-oic (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-oic
+INFO: Disabling updates for meta-intel-quark (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-intel-quark
+INFO: Disabling updates for meta-intel-galileo (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-intel-galileo
+INFO: Disabling updates for meta-dra7xx-evm (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-dra7xx-evm
+INFO: Disabling updates for meta-qemu-bsps (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-qemu-bsps
+INFO: Disabling updates for meta-via-vab820-bsp (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-via-vab820-bsp
+INFO: Disabling updates for meta-security-framework (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-security-framework
+INFO: Disabling updates for meta-kali (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-kali
+INFO: Disabling updates for meta-maker (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-maker
+INFO: Disabling updates for meta-nanopi (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-nanopi
+INFO: Disabling updates for meta-pareon (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-pareon
+INFO: Disabling updates for meta-jz-mips (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-jz-mips
+INFO: Disabling updates for meta-nodejs (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-nodejs
+INFO: Disabling updates for meta-rslsync (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-rslsync
+INFO: Disabling updates for meta-swupd (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-swupd
+INFO: Disabling updates for meta-micropython (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-micropython
+INFO: Disabling updates for meta-cavium-arm (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-cavium-arm
+INFO: Disabling updates for meta-resin-zc702 (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-resin-zc702
+INFO: Disabling updates for meta-resin-toradex (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-resin-toradex
+INFO: Disabling updates for meta-resin-parallella (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-resin-parallella
+INFO: Disabling updates for meta-resin-via-arm (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-resin-via-arm
+INFO: Disabling updates for meta-artik (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-artik
+INFO: Disabling updates for meta-exotic (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-exotic
+INFO: Disabling updates for meta-rpiexperiences (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-rpiexperiences
+INFO: Disabling updates for meta-img (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-img
+INFO: Disabling updates for meta-arduino (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-arduino
+INFO: Disabling updates for meta-redhawk-sdr (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-redhawk-sdr
+INFO: Disabling updates for meta-sdl (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-sdl
+INFO: Disabling updates for meta-vesta (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-vesta
+INFO: Disabling updates for meta-iot-web (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-iot-web
+INFO: Disabling updates for meta-intel-clear-containers (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-intel-clear-containers
+INFO: Disabling updates for meta-lorawan (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-lorawan
+INFO: Disabling updates for meta-lora-net (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-lora-net
+INFO: Disabling updates for meta-udoo (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-udoo
+INFO: Disabling updates for meta-license-tools (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-license-tools
+INFO: Disabling updates for meta-cryptocurrency (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-cryptocurrency
+INFO: Disabling updates for meta-lorawan-rak831 (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-lorawan-rak831
+INFO: Disabling updates for meta-lts-kernel (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-lts-kernel
+INFO: Disabling updates for meta-docker (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-docker
+INFO: Disabling updates for meta-chip-legacy (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-chip-legacy
+INFO: Disabling updates for meta-intel-aero (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-intel-aero
+INFO: Disabling updates for meta-machinelearning (branch master) - no LAYERSERIES_COMPAT
+INFO:   Added warning note to meta-machinelearning
+INFO: Summary: 82 disabled, 344 OK, 0 skipped
+INFO: Dry run - no changes committed to database
