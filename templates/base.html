@@ -30,7 +30,6 @@
     {% block header %}
     {% autoescape on %}
     <form id="logout-form" method="post" action="{% url 'logout' %}">{% csrf_token %}</form>
-    <nav class="navbar navbar-expand navbar-light bg-light fixed-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'frontpage' %}">{{ site_name }}</a>
 
