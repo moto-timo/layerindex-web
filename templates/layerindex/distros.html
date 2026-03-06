@@ -31,7 +31,7 @@
 {% autoescape on %}
 
 
-                <div class="bottom-margin">
+                <div class="col-md-6 no-left-pad mb-4">
                     <form id="filter-form" action="{% url 'distro_search' url_branch %}" method="get">
                         <div class="input-group col-md-6">
                             <input type="text" class="form-control" id="id_search_text" placeholder="Search distros" name="q" value="{{ search_keyword }}" />
