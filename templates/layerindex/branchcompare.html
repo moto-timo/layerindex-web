@@ -22,7 +22,7 @@
         <div class="row">
             <div class="col-md-12">
 
-    <div class="d-flex justify-content-between align-items-start">
+    <div class="d-flex justify-content-between mb-4">
                 <h2>Branch recipe comparison</h2>
         <form class="form-inline d-flex align-items-center" method="GET">
             {{ form }}
@@ -70,7 +70,7 @@
                 </div><!-- /.modal-dialog -->
             </div>
 
-            <button type="button" id="id_select_layers" class="btn btn-outline-secondary nav-spacer" data-bs-toggle="modal" data-bs-target="#layerDialog">Filter layers <span class="badge bg-success" id="id_layers_count">{{ showlayers|length }}</span></button>
+            <button type="button" id="id_select_layers" class="btn btn-outline-secondary nav-spacer text-nowrap" data-bs-toggle="modal" data-bs-target="#layerDialog">Filter layers <span class="badge bg-success" id="id_layers_count">{{ showlayers|length }}</span></button>
 
             <button type="submit" class="btn btn-primary nav-spacer">Show</button>
         </form>
