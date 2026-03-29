@@ -45,9 +45,9 @@ SITE_ID = 1
 # to load the internationalization machinery.
 USE_I18N = True
 
-# If you set this to False, Django will not format dates, numbers and
-# calendars according to the current locale
-USE_L10N = True
+# As of Django 5.0 the defaults has changed to True, so set it to False to avoid
+# timezone-aware datetimes which require more complex handling in the codebase.
+USE_TZ = False
 
 # Avoid specific paths
 BASE_DIR = os.path.dirname(__file__)
