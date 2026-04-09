@@ -25,7 +25,7 @@ from django.contrib.sites.models import Site
 from django.core.exceptions import PermissionDenied
 from django.urls import resolve, reverse, reverse_lazy
 from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import Count, Max, Q
 from django.db.models.functions import Lower
 from django.db.models.query import QuerySet
 from django.db.models.signals import pre_save
@@ -661,8 +661,32 @@ class DuplicatesView(TemplateView):
         # into memory and building a potentially huge IN (...) clause.
         # See: https://bugzilla.yoctoproject.org/show_bug.cgi?id=16175
         dupes = init_qs.values('pn').annotate(Count('layerbranch', distinct=True)).filter(layerbranch__count__gt=1).values('pn')
-        qs = init_qs.filter(pn__in=dupes).select_related('layerbranch__layer').order_by('pn', 'layerbranch__layer', '-pv')
-        return recipes_preferred_count(qs)
+        recipes = list(init_qs.filter(pn__in=dupes).select_related('layerbranch__layer').order_by('pn', 'layerbranch__layer', '-pv'))
+        if not recipes:
+            return recipes
+        # recipes_preferred_count() attaches a correlated subquery via .extra() that
+        # the database evaluates once per result row.  With hundreds of duplicate
+        # recipes that compounds into a slow multi-table correlated scan that causes
+        # a 504 Gateway Timeout.  Instead, compute preferred_count with a single
+        # batch MAX query across all pns and annotate the results in Python.
+        #
+        # A recipe is "non-preferred" (preferred_count > 0) when another layer of
+        # type S or A carries the same pn and has a higher index_preference.
+        pns = {r.pn for r in recipes}
+        pn_max_pref = dict(
+            Recipe.objects.filter(
+                layerbranch__branch__name=self.kwargs['branch'],
+                pn__in=pns,
+                layerbranch__layer__layer_type__in=['S', 'A'],
+            ).values('pn').annotate(
+                max_pref=Max('layerbranch__layer__index_preference')
+            ).values_list('pn', 'max_pref')
+        )
+        for recipe in recipes:
+            own_pref = recipe.layerbranch.layer.index_preference
+            max_pref = pn_max_pref.get(recipe.pn)
+            recipe.preferred_count = 1 if (max_pref is not None and max_pref > own_pref) else 0
+        return recipes
 
     def get_classes(self, layer_ids):
         init_qs = BBClass.objects.filter(layerbranch__branch__name=self.kwargs['branch'])
