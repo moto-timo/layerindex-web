@@ -656,24 +656,30 @@ class DuplicatesView(TemplateView):
         init_qs = Recipe.objects.filter(layerbranch__branch__name=self.kwargs['branch'])
         if layer_ids:
             init_qs = init_qs.filter(layerbranch__layer__in=layer_ids)
-        dupes = init_qs.values('pn').annotate(Count('layerbranch', distinct=True)).filter(layerbranch__count__gt=1)
-        qs = init_qs.all().filter(pn__in=[item['pn'] for item in dupes]).order_by('pn', 'layerbranch__layer', '-pv')
+        # Use a subquery instead of a Python list comprehension so that Django
+        # emits a single SQL subquery rather than loading all duplicate pn values
+        # into memory and building a potentially huge IN (...) clause.
+        # See: https://bugzilla.yoctoproject.org/show_bug.cgi?id=16175
+        dupes = init_qs.values('pn').annotate(Count('layerbranch', distinct=True)).filter(layerbranch__count__gt=1).values('pn')
+        qs = init_qs.filter(pn__in=dupes).select_related('layerbranch__layer').order_by('pn', 'layerbranch__layer', '-pv')
         return recipes_preferred_count(qs)
 
     def get_classes(self, layer_ids):
         init_qs = BBClass.objects.filter(layerbranch__branch__name=self.kwargs['branch'])
         if layer_ids:
             init_qs = init_qs.filter(layerbranch__layer__in=layer_ids)
-        dupes = init_qs.values('name').annotate(Count('layerbranch', distinct=True)).filter(layerbranch__count__gt=1)
-        qs = init_qs.all().filter(name__in=[item['name'] for item in dupes]).order_by('name', 'layerbranch__layer')
+        # Use a subquery instead of a Python list comprehension (see bug #16175)
+        dupes = init_qs.values('name').annotate(Count('layerbranch', distinct=True)).filter(layerbranch__count__gt=1).values('name')
+        qs = init_qs.filter(name__in=dupes).select_related('layerbranch__layer').order_by('name', 'layerbranch__layer')
         return qs
 
     def get_incfiles(self, layer_ids):
         init_qs = IncFile.objects.filter(layerbranch__branch__name=self.kwargs['branch'])
         if layer_ids:
             init_qs = init_qs.filter(layerbranch__layer__in=layer_ids)
-        dupes = init_qs.values('path').annotate(Count('layerbranch', distinct=True)).filter(layerbranch__count__gt=1)
-        qs = init_qs.all().filter(path__in=[item['path'] for item in dupes]).order_by('path', 'layerbranch__layer')
+        # Use a subquery instead of a Python list comprehension (see bug #16175)
+        dupes = init_qs.values('path').annotate(Count('layerbranch', distinct=True)).filter(layerbranch__count__gt=1).values('path')
+        qs = init_qs.filter(path__in=dupes).select_related('layerbranch__layer').order_by('path', 'layerbranch__layer')
         return qs
 
     def get_context_data(self, **kwargs):
