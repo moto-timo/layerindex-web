@@ -1522,12 +1522,23 @@ class StatsView(TemplateView):
         context['class_count_distinct'] = BBClass.objects.values('name').distinct().count()
         context['machine_count_distinct'] = Machine.objects.values('name').distinct().count()
         context['distro_count_distinct'] = Distro.objects.values('name').distinct().count()
-        context['perbranch'] = Branch.objects.filter(hidden=False).order_by('sort_priority').annotate(
-                layer_count=Count('layerbranch', distinct=True),
-                recipe_count=Count('layerbranch__recipe', distinct=True),
-                class_count=Count('layerbranch__bbclass', distinct=True),
-                machine_count=Count('layerbranch__machine', distinct=True),
-                distro_count=Count('layerbranch__distro', distinct=True))
+        # Compute per-branch counts with individual queries rather than a single
+        # annotated queryset. The multi-Count(distinct=True) approach generates one
+        # large SQL query with many LEFT JOINs that causes a gunicorn worker timeout
+        # at production data volumes. Simple per-branch COUNT queries are far cheaper.
+        # See: https://bugzilla.yoctoproject.org/show_bug.cgi?id=15391
+        perbranch = []
+        for branch in Branch.objects.filter(hidden=False).order_by('sort_priority'):
+            perbranch.append({
+                'name': branch.name,
+                'updates_enabled': branch.updates_enabled,
+                'layer_count': LayerBranch.objects.filter(branch=branch).count(),
+                'recipe_count': Recipe.objects.filter(layerbranch__branch=branch).count(),
+                'class_count': BBClass.objects.filter(layerbranch__branch=branch).count(),
+                'machine_count': Machine.objects.filter(layerbranch__branch=branch).count(),
+                'distro_count': Distro.objects.filter(layerbranch__branch=branch).count(),
+            })
+        context['perbranch'] = perbranch
         return context
 
 
