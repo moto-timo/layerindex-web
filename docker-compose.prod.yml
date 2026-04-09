@@ -7,6 +7,7 @@ services:
     env_file:
      - ".env.prod.db"
     restart: unless-stopped
+
   layersapp:
     depends_on:
       - layersdb
@@ -19,6 +20,7 @@ services:
     env_file:
      - ".env.prod.app"
     restart: unless-stopped
+
   layersweb:
     depends_on:
       - layersapp
@@ -36,11 +38,13 @@ services:
      - certbotwww:/var/www/certbot
     command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
     restart: unless-stopped
+
   layersrabbit:
     image: rabbitmq:alpine
     restart: unless-stopped
     env_file:
      - ".env.prod.rabbit"
+
   layerscelery:
     depends_on:
       - layersdb
@@ -54,6 +58,7 @@ services:
      - ".env.prod.celery"
     restart: unless-stopped
     command: /usr/local/bin/celery --workdir=/opt/layerindex --app layerindex.tasks worker --loglevel=INFO
+
   layerscertbot:
     image: certbot/certbot
     volumes:
