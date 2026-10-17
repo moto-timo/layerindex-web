@@ -1,0 +1,35 @@
+# SPDX-License-Identifier: MIT
+
+name: CI
+
+on:
+  push:
+    branches: [master,master-next]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SAFETY_API_KEY: ${{ secrets.SAFETY_API_KEY }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build image and run tests
+        run: docker/run-tests.sh
+
+      # Scans the versions actually installed in the image, so ranges in
+      # requirements.txt (e.g. Django) can't hide vulnerable releases.
+      # Skipped where the secret isn't available, e.g. pull requests from forks.
+      - name: Safety scan
+        if: env.SAFETY_API_KEY != ''
+        run: |
+          mkdir safety-scan
+          cp .safety-project.ini safety-scan/
+          docker run --rm layerindex-test pip3 freeze > safety-scan/requirements.txt
+          pipx run safety==3.7.0 scan --target safety-scan --detailed-output
