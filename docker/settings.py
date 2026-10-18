@@ -163,8 +163,8 @@ INSTALLED_APPS = (
     'corsheaders',
 )
 
-if os.getenv('ENABLE_RRS', '0') == 1:
-    INSTALLED_APPS += ('rrs')
+if os.getenv('ENABLE_RRS', '0') == '1':
+    INSTALLED_APPS += ('rrs',)
 
 AUTHENTICATION_BACKENDS = [
     'axes.backends.AxesBackend',
