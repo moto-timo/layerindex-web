@@ -1,9 +1,0 @@
---- a/layerindex/context_processors.py	2026-08-08 15:08:17.642787664 +0000
-+++ b/layerindex/context_processors.py	2026-08-08 15:08:17.656661260 +0000
-@@ -30,4 +30,6 @@
-         'notices': SiteNotice.objects.filter(disabled=False).filter(Q(expires__isnull=True) | Q(expires__gte=datetime.now())),
-         'comparison_branches': Branch.objects.filter(comparison=True).exclude(hidden=True),
-         'login_return_url': login_return_url,
-+        'oidc_enabled': getattr(settings, 'ENABLE_OIDC', False),
-+        'registration_open': getattr(settings, 'REGISTRATION_OPEN', True),
-     }

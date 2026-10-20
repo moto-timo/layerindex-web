@@ -30,4 +30,6 @@ def layerindex_context(request):
         'notices': SiteNotice.objects.filter(disabled=False).filter(Q(expires__isnull=True) | Q(expires__gte=datetime.now())),
         'comparison_branches': Branch.objects.filter(comparison=True).exclude(hidden=True),
         'login_return_url': login_return_url,
+        'oidc_enabled': getattr(settings, 'ENABLE_OIDC', False),
+        'registration_open': getattr(settings, 'REGISTRATION_OPEN', True),
     }
