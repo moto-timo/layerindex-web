@@ -1,0 +1,94 @@
+# Caddyfile for layerindex-web on Hetzner Cloud
+#
+# Replaces the nginx (layersweb) + certbot (layerscertbot) containers.
+# Caddy terminates TLS, obtains/renews Let's Encrypt certificates automatically,
+# serves Django's collected static files, and reverse-proxies the rest to gunicorn.
+#
+# SPDX-License-Identifier: MIT
+{
+	# ACME account contact. Required for ZeroSSL fallback to work unattended.
+	email {$ACME_EMAIL}
+
+	# Point this at Let's Encrypt staging while you are testing DNS/firewall:
+	#   ACME_CA=https://acme-staging-v02.api.letsencrypt.org/directory
+	# Leave unset for production. Note: after switching staging -> production you
+	# must delete the staging artifacts or Caddy keeps serving the untrusted cert:
+	#   docker compose exec layerscaddy \
+	#     rm -rf /data/caddy/certificates/acme-staging-v02.api.letsencrypt.org-directory
+	#   docker compose restart layerscaddy
+	acme_ca {$ACME_CA:https://acme-v02.api.letsencrypt.org/directory}
+
+	# Caddy is the edge. Do NOT set trusted_proxies unless something (Cloudflare,
+	# a load balancer) sits in front of it -- doing so would let clients spoof
+	# X-Forwarded-For.
+}
+
+{$LAYERINDEX_HOSTNAME} {
+	encode zstd gzip
+
+	# ---------------------------------------------------------------- static --
+	# The layersstatic volume is mounted at /srv. Django's STATIC_ROOT inside the
+	# app container is /usr/share/nginx/html/static/, i.e. <volume>/static/, so a
+	# request for /static/foo.css maps to /srv/static/foo.css with no prefix
+	# stripping. (Do not use handle_path here -- it would strip /static and
+	# break the mapping.)
+	@static path /static/*
+	handle @static {
+		root * /srv
+		file_server
+		header Cache-Control "public, max-age=2592000"
+	}
+
+	handle /favicon.ico {
+		redir /static/img/favicon.ico permanent
+	}
+
+	# ------------------------------------------------------- brute-force limit --
+	# Caddy has no built-in rate limiter. django-axes already locks out repeated
+	# failed logins at the application layer (AXES_FAILURE_LIMIT), which is what
+	# the old nginx limit_req zone was approximating. If you want the edge limit
+	# back as well, build the image from Dockerfile.caddy and uncomment this:
+	#
+	# rate_limit {
+	# 	zone login {
+	# 		match {
+	# 			path /accounts/login /accounts/login/ /accounts/register/ /accounts/password_reset/
+	# 			method POST
+	# 		}
+	# 		key    {remote_host}
+	# 		events 5
+	# 		window 1m
+	# 	}
+	# }
+
+	# ------------------------------------------------------------------ app --
+	# reverse_proxy already sets X-Forwarded-For, X-Forwarded-Proto and
+	# X-Forwarded-Host, and ignores any client-supplied values. Django reads
+	# X-Forwarded-Proto via SECURE_PROXY_SSL_HEADER. No header_up lines needed.
+	handle {
+		reverse_proxy layersapp:5000 {
+			# Long-running admin/update pages; gunicorn --timeout is 60.
+			transport http {
+				read_timeout 120s
+			}
+		}
+	}
+
+	# Only headers Django does not already set. Django sets X-Frame-Options: DENY
+	# and X-Content-Type-Options: nosniff itself -- setting them here would
+	# silently override (and could weaken) those.
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}
+
+# HTTP -> HTTPS redirection is automatic in Caddy. Do not add an
+# `http://{$LAYERINDEX_HOSTNAME}` block; it would disable the built-in redirect
+# and the HTTP-01 ACME challenge handler along with it.
