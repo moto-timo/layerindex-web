@@ -60,6 +60,13 @@ if 'rrs' in settings.INSTALLED_APPS:
         re_path(r'^rrs/', include('rrs.urls')),
     ]
 
+if 'mozilla_django_oidc' in settings.INSTALLED_APPS:
+    # Mounted at oidc/ rather than accounts/ so it cannot collide with
+    # django_registration or django.contrib.auth.urls.
+    urlpatterns += [
+        re_path(r'^oidc/', include('mozilla_django_oidc.urls')),
+    ]
+
 urlpatterns += [
     re_path(r'.*', RedirectView.as_view(url='/layerindex/', permanent=False)),
 ]
