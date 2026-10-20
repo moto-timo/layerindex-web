@@ -197,6 +197,10 @@ dc exec -u root layersapp chown -R layers /usr/share/nginx/html /opt/layerindex-
 dc exec layersapp /opt/layerindex/manage.py migrate
 dc exec layersapp /opt/layerindex/manage.py collectstatic --noinput
 dc exec layersapp /opt/layerindex/manage.py createsuperuser
+
+# The page header shows the Sites framework's default "example.com" until the
+# site is renamed.
+dc exec layersapp /opt/layerindex/manage.py shell -c "from django.contrib.sites.models import Site; Site.objects.filter(id=1).update(domain='layers.example.com', name='Layer Index')"
 ```
 
 Switching from staging to production: comment out `ACME_CA`, then **delete the
@@ -397,6 +401,21 @@ $EDITOR .env      # AUTHENTIK_URL, AUTHENTIK_APP_SLUG, OIDC_RP_CLIENT_ID/SECRET,
                   # OIDC_STAFF_GROUPS, OIDC_SUPERUSER_GROUPS
 dc up -d --build
 ```
+
+If the SSO button lands on an Authentik error page, check what layerindex
+actually sends. The client ID and redirect URI are visible in the redirect:
+
+```sh
+curl -s -o /dev/null -w '%{redirect_url}\n' https://layers.example.com/oidc/authenticate/
+```
+
+- **Client ID Error**: `client_id` does not match the provider. Authentik
+  client IDs are exactly 40 characters; a stray character from copy and paste
+  is the usual cause. Fix `.env`, re-copy the client secret as well, and run
+  `dc up -d`.
+- **Redirect URI Error**: the provider's redirect URI must be exactly
+  `https://layers.example.com/oidc/callback/`, including the trailing slash,
+  with matching mode Strict. No restart is needed after fixing it.
 
 Routes added: `oidc/authenticate/`, `oidc/callback/`, `oidc/logout/`. Nothing
 under `accounts/` moves.
