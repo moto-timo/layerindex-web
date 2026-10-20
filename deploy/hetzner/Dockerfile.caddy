@@ -1,0 +1,21 @@
+# Optional: Caddy with the third-party rate limiting module.
+#
+# Only needed if you want the old nginx `limit_req zone=login_ip` behaviour back
+# at the edge. django-axes already handles login brute force at the application
+# layer, so the stock caddy:2.11.7-alpine image is the default in
+# docker-compose.yml and this file is opt-in.
+#
+# caddy-ratelimit is authored by Caddy's creator but is explicitly NOT an
+# official Caddy repository, and is pre-1.0. Build it once and check that it
+# compiles against the pinned Caddy version before relying on it.
+#
+#   docker compose -f deploy/hetzner/docker-compose.yml build layerscaddy
+#
+# SPDX-License-Identifier: MIT
+
+FROM caddy:2.11.7-builder-alpine AS builder
+RUN xcaddy build \
+    --with github.com/mholt/caddy-ratelimit
+
+FROM caddy:2.11.7-alpine
+COPY --from=builder /usr/bin/caddy /usr/bin/caddy

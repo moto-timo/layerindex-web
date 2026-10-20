@@ -1,0 +1,150 @@
+# Production docker compose stack for layerindex-web on a single Hetzner Cloud VM.
+#
+# Differences from the repo-root docker-compose.yml:
+#   * layersweb (nginx) and layerscertbot are gone; layerscaddy replaces both.
+#   * MariaDB gets an explicit named volume. The upstream file has none, so the
+#     database lives in an anonymous volume that `docker compose down` orphans.
+#   * A real application DB user is created. Upstream sets DATABASE_USER=layers
+#     for layerscelery but only ever creates root, so celery cannot connect.
+#   * All secrets come from .env; nothing is hardcoded.
+#   * HOSTNAME is set explicitly. Docker otherwise sets HOSTNAME to the container
+#     ID or to `hostname:`, and docker/settings.py derives ALLOWED_HOSTS and
+#     CSRF_TRUSTED_ORIGINS from it.
+#   * Healthchecks and ordered startup.
+#
+# Usage (from the repo root):
+#   cp deploy/hetzner/env.example .env && $EDITOR .env
+#   docker compose -f deploy/hetzner/docker-compose.yml --env-file .env up -d --build
+#
+# SPDX-License-Identifier: MIT
+
+name: layerindex
+
+x-app-env: &app-env
+  # Explicit, so docker/settings.py builds the right ALLOWED_HOSTS/CSRF origins.
+  HOSTNAME: ${LAYERINDEX_HOSTNAME:?set LAYERINDEX_HOSTNAME in .env}
+  SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY in .env}
+  DATABASE_USER: ${DATABASE_USER:-layers}
+  DATABASE_PASSWORD: ${DATABASE_PASSWORD:?set DATABASE_PASSWORD in .env}
+  DATABASE_HOST: layersdb
+  RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-guest}
+  RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:?set RABBITMQ_DEFAULT_PASS in .env}
+  # Hetzner Cloud blocks outbound 25 and 465 by default. Use a relay on 587.
+  EMAIL_HOST: ${EMAIL_HOST:-}
+  EMAIL_PORT: ${EMAIL_PORT:-587}
+  EMAIL_USER: ${EMAIL_USER:-}
+  EMAIL_PASSWORD: ${EMAIL_PASSWORD:-}
+  EMAIL_USE_TLS: ${EMAIL_USE_TLS:-1}
+  # --- phase 2: Authentik SSO. Leave OIDC_RP_CLIENT_ID empty to keep it off. ---
+  AUTHENTIK_URL: ${AUTHENTIK_URL:-}
+  AUTHENTIK_APP_SLUG: ${AUTHENTIK_APP_SLUG:-layerindex}
+  OIDC_RP_CLIENT_ID: ${OIDC_RP_CLIENT_ID:-}
+  OIDC_RP_CLIENT_SECRET: ${OIDC_RP_CLIENT_SECRET:-}
+  OIDC_STAFF_GROUPS: ${OIDC_STAFF_GROUPS:-}
+  OIDC_SUPERUSER_GROUPS: ${OIDC_SUPERUSER_GROUPS:-}
+  REGISTRATION_OPEN: ${REGISTRATION_OPEN:-1}
+
+x-app-common: &app-common
+  image: layerindex-app:local
+  volumes:
+    - layersmeta:/opt/workdir
+    - logvolume:/opt/layerindex-task-logs:z
+    # Mounted so `docker compose exec layersapp .../manage.py collectstatic`
+    # writes straight into the volume Caddy serves.
+    - layersstatic:/usr/share/nginx/html
+  environment: *app-env
+  restart: unless-stopped
+
+services:
+  layersdb:
+    image: mariadb:lts
+    command: >-
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --wait_timeout=28800
+      --max_allowed_packet=128M
+      --innodb-buffer-pool-size=${MARIADB_BUFFER_POOL:-2G}
+    environment:
+      MARIADB_DATABASE: layersdb
+      MARIADB_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD:?set DATABASE_ROOT_PASSWORD in .env}
+      MARIADB_USER: ${DATABASE_USER:-layers}
+      MARIADB_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - layersdbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  layersrabbit:
+    image: rabbitmq:alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    volumes:
+      - layersrabbitdata:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    restart: unless-stopped
+
+  layersapp:
+    <<: *app-common
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    depends_on:
+      layersdb:
+        condition: service_healthy
+
+  layerscelery:
+    <<: *app-common
+    depends_on:
+      layersdb:
+        condition: service_healthy
+      layersrabbit:
+        condition: service_healthy
+      layersapp:
+        condition: service_started
+    command: >-
+      /usr/local/bin/celery --workdir=/opt/layerindex --app layerindex.tasks
+      worker --loglevel=INFO --concurrency=${CELERY_CONCURRENCY:-2}
+
+  layerscaddy:
+    image: caddy:2.11.7-alpine
+    # For edge rate limiting, comment out `image:` above and use instead:
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile.caddy
+    depends_on:
+      - layersapp
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"      # HTTP/3
+    environment:
+      LAYERINDEX_HOSTNAME: ${LAYERINDEX_HOSTNAME}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL in .env}
+      ACME_CA: ${ACME_CA:-https://acme-v02.api.letsencrypt.org/directory}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - layersstatic:/srv:ro
+      # MUST be a persistent named volume. /data holds the ACME account key and
+      # every issued certificate. Losing it on each recreate burns Let's
+      # Encrypt's "5 duplicate certificates per 7 days" limit almost immediately.
+      - caddydata:/data
+      - caddyconfig:/config
+    restart: unless-stopped
+
+volumes:
+  layersmeta:
+  layersstatic:
+  layersdbdata:
+  layersrabbitdata:
+  logvolume:
+  caddydata:
+  caddyconfig:
