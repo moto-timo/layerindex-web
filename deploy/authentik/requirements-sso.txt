@@ -1,0 +1,19 @@
+# Extra dependency for Authentik SSO (phase 2).
+#
+# The Dockerfile only COPYs and installs requirements.txt, so the practical
+# move is to add this single line to requirements.txt rather than plumb a
+# second file through the build:
+#
+#     mozilla-django-oidc==5.0.2
+#
+# Caveat: requirements.txt starts with
+#     -i https://pkgs.safetycli.com/repository/self-.../pypi/simple/
+# which makes that private mirror the *only* index pip consults. Confirm
+# mozilla-django-oidc is mirrored there, or add
+#     --extra-index-url https://pypi.org/simple/
+# before adding the pin.
+#
+# 5.0.0 dropped josepy for PyJWT and requires Django >= 4.2; 5.0.2 is current
+# as of August 2026 and supports Django 5.2.
+
+mozilla-django-oidc==5.0.2
