@@ -18,7 +18,7 @@ set -eu
 
 DEST="${1:-/var/backups/layerindex}"
 KEEP="${KEEP:-14}"
-COMPOSE="docker compose -f deploy/hetzner/docker-compose.yml"
+COMPOSE="docker compose -f deploy/hetzner/docker-compose.yml --env-file .env"
 
 mkdir -p "$DEST"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
