@@ -1,0 +1,18 @@
+{# django_registration does not ship this template, but RegistrationView       #}
+{# redirects to django_registration_disallowed when REGISTRATION_OPEN=False,  #}
+{# so without it you get a TemplateDoesNotExist 500 instead of a clean page.  #}
+{# Install as templates/django_registration/registration_closed.html          #}
+{# SPDX-License-Identifier: MIT                                               #}
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Registration closed" %}{% endblock %}
+
+{% block content %}
+<h2>{% trans "Registration is closed" %}</h2>
+<p>
+  {% trans "New accounts on this site are created through single sign-on." %}
+  <a href="{% url 'login' %}">{% trans "Go to the log in page" %}</a>
+  {% trans "and choose &ldquo;Sign in with SSO&rdquo;." %}
+</p>
+{% endblock %}
