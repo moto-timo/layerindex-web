@@ -23,6 +23,9 @@ name: layerindex
 x-app-env: &app-env
   # Explicit, so docker/settings.py builds the right ALLOWED_HOSTS/CSRF origins.
   HOSTNAME: ${LAYERINDEX_HOSTNAME:?set LAYERINDEX_HOSTNAME in .env}
+  # celery imports layerindex.tasks directly; manage.py and wsgi.py set this
+  # themselves but the worker does not.
+  DJANGO_SETTINGS_MODULE: settings
   SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY in .env}
   DATABASE_USER: ${DATABASE_USER:-layers}
   DATABASE_PASSWORD: ${DATABASE_PASSWORD:?set DATABASE_PASSWORD in .env}
