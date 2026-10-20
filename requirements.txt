@@ -24,6 +24,7 @@ djangorestframework==3.18.0
 gitdb==4.0.12
 GitPython==3.1.62
 kombu==5.6.2
+mozilla-django-oidc==5.0.2
 mysqlclient==2.2.8
 packaging_legacy==23.0.post0
 Pillow==12.3.0

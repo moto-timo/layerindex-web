@@ -5,6 +5,17 @@
 {% endblock %}
 
 {% block content %}
+{% if oidc_enabled %}
+<p>
+  <a class="btn btn-primary btn-lg"
+     href="{% url 'oidc_authentication_init' %}{% if next %}?next={{ next|urlencode }}{% endif %}">
+    {% trans "Sign in with SSO" %}
+  </a>
+</p>
+<hr>
+<p class="text-muted">{% trans "Or sign in with a local account:" %}</p>
+{% endif %}
+
 <form id="login_form" method="post" action="." autocomplete="off">
   {{ form.as_p }}
 
@@ -14,7 +25,9 @@
 </form>
 
 <p>{% trans "Forgot password" %}? <a href="{% url "password_reset" %}">{% trans "Reset it" %}</a>!</p>
+{% if registration_open %}
 <p>{% trans "Don't have an account" %}? <a href="{% url "django_registration_register" %}">{% trans "Create one now" %}</a>!</p>
+{% endif %}
 {% endblock %}
 
 

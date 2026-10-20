@@ -19,24 +19,19 @@ redirect, Django **5.2**.
 ```
 deploy/
 ├── README.md                                  ← this file
-├── settings_append.py                         append to docker/settings.py
-├── hetzner/
-│   ├── docker-compose.yml                     production stack (Caddy, no nginx)
-│   ├── Caddyfile                              validated against caddy 2.11.7
-│   ├── Dockerfile.caddy                       optional: xcaddy + rate limiting
-│   ├── env.example                            copy to repo-root .env
-│   ├── bootstrap-host.sh                      fresh-VM prep
-│   └── backup-db.sh                           mariadb-dump + prune
-└── authentik/
-    ├── requirements-sso.txt
-    ├── 0001-urls-add-oidc-routes.patch
-    ├── 0002-context-expose-oidc-flags.patch
-    └── templates/
-        ├── registration/login.html            adds the "Sign in with SSO" button
-        └── django_registration/registration_closed.html
+└── hetzner/
+    ├── docker-compose.yml                     production stack (Caddy, no nginx)
+    ├── Caddyfile                              validated against caddy 2.11.7
+    ├── Dockerfile.caddy                       optional: xcaddy + rate limiting
+    ├── env.example                            copy to repo-root .env
+    ├── bootstrap-host.sh                      fresh-VM prep
+    └── backup-db.sh                           mariadb-dump + prune
 ```
 
-Plus `layerindex/oidc.py` — the OIDC backend itself, which lives in the app.
+The SSO code lives in the app: `layerindex/oidc.py` (the backend), the `oidc/`
+routes in `urls.py`, the SSO block at the end of `docker/settings.py`, and the
+`registration/login.html` and `django_registration/registration_closed.html`
+templates.
 
 ---
 
@@ -214,16 +209,11 @@ dc exec layerscaddy \
 dc up -d layerscaddy
 ```
 
-### 5. Optional hardening you may append now
+### 5. Cookie hardening
 
-`deploy/settings_append.py` also turns on `SESSION_COOKIE_SECURE` /
-`CSRF_COOKIE_SECURE` (currently unset — cookies are HTTPS-only in practice but
-not marked as such) when `DEBUG` is off. Appending it is a no-op for SSO until
-you set `OIDC_RP_CLIENT_ID`:
-
-```sh
-cat deploy/settings_append.py >> docker/settings.py
-```
+`docker/settings.py` sets `SESSION_COOKIE_SECURE` and `CSRF_COOKIE_SECURE` when
+`DEBUG` is off, since Caddy only serves the site over HTTPS. SSO stays off until
+you set `OIDC_RP_CLIENT_ID`.
 
 ## Bugs in the upstream compose file, fixed here
 
@@ -399,30 +389,13 @@ endpoint yourself. For layerindex that is over-engineering.
 
 ## Applying phase 2
 
+The code is already in the tree and inert until `OIDC_RP_CLIENT_ID` is set.
+Configure and rebuild (`dc` alias from phase 1, step 4):
+
 ```sh
-# 1. dependency
-echo 'mozilla-django-oidc==5.0.2' >> requirements.txt
-#    NB: requirements.txt starts with `-i https://pkgs.safetycli.com/...`, which
-#    makes that mirror the ONLY index pip consults. Confirm the package is
-#    mirrored there, or add `--extra-index-url https://pypi.org/simple/`.
-
-# 2. settings (skip if already appended in phase 1)
-cat deploy/settings_append.py >> docker/settings.py
-
-# 3. routes + template context (layerindex/oidc.py is already in the tree)
-git apply deploy/authentik/0001-urls-add-oidc-routes.patch
-git apply deploy/authentik/0002-context-expose-oidc-flags.patch
-
-# 4. templates
-cp deploy/authentik/templates/registration/login.html templates/registration/
-cp deploy/authentik/templates/django_registration/registration_closed.html \
-   templates/django_registration/
-
-# 5. configure and restart (dc alias from phase 1, step 4)
 $EDITOR .env      # AUTHENTIK_URL, AUTHENTIK_APP_SLUG, OIDC_RP_CLIENT_ID/SECRET,
                   # OIDC_STAFF_GROUPS, OIDC_SUPERUSER_GROUPS
 dc up -d --build
-dc exec layersapp /opt/layerindex/manage.py collectstatic --noinput
 ```
 
 Routes added: `oidc/authenticate/`, `oidc/callback/`, `oidc/logout/`. Nothing
@@ -477,7 +450,7 @@ which is fine).
   is listed, and the Caddyfile validates with the `rate_limit` block enabled.
 - `docker compose config` against **Compose v5.4.0**: renders, anchors resolve,
   build context resolves to the repo root.
-- `docker/settings.py` + `deploy/settings_append.py` executed under **Django
+- `docker/settings.py` executed under **Django
   5.2.17** with OIDC env set and unset — endpoints, group lists, backend order
   and `INSTALLED_APPS` all correct in both states, no OIDC settings leaking when
   disabled.

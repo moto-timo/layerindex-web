@@ -1,6 +1,6 @@
 # layerindex-web - OpenID Connect authentication against Authentik
 #
-# Only loaded when OIDC_RP_CLIENT_ID is set; see deploy/settings_append.py.
+# Only loaded when OIDC_RP_CLIENT_ID is set; see docker/settings.py.
 #
 # SPDX-License-Identifier: MIT
 
