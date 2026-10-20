@@ -149,8 +149,12 @@ On IPv6: Hetzner gives every VM a free /64, but the guest sometimes needs manual
 configuration, Cloud Firewall rules written only for `0.0.0.0/0` drop v6, and
 Docker may not publish on `::` depending on `ip6tables` settings. Let's Encrypt
 *prefers* AAAA when it exists, so a broken v6 path breaks issuance even though
-v4 works. Publish AAAA only after `curl -6 http://<host>/` succeeds. A-only is
-perfectly fine.
+v4 works. Publish AAAA only after `curl -6 http://<host>/` succeeds from a host
+that has working IPv6. A-only is perfectly fine.
+
+The AAAA record must be the VM's address inside the /64, normally `<prefix>::1`
+(check with `ip -6 addr show scope global`). The bare `<prefix>::` shown in the
+Console is the subnet itself and nothing answers there.
 
 Set rDNS in the Console (Server → Networking). For IPv6 enter only the interface
 identifier — the /64 prefix is already stored.
@@ -171,30 +175,43 @@ poor regardless.
 ### 4. Configure and start
 
 ```sh
+sudo mkdir -p /srv/layerindex-web && sudo chown "$USER": /srv/layerindex-web
 git clone <repo> /srv/layerindex-web && cd /srv/layerindex-web
+# The Dockerfile does `COPY .`, so keep the secrets out of the image.
+echo .env >> .dockerignore
 cp deploy/hetzner/env.example .env && chmod 600 .env
 python3 -c 'import secrets; print(secrets.token_urlsafe(64))'   # SECRET_KEY
 $EDITOR .env
+```
+
+Compose reads `.env` from the directory of the compose file, not the current
+directory, so every command needs `--env-file .env`. An alias saves typing:
+
+```sh
+alias dc='docker compose -f deploy/hetzner/docker-compose.yml --env-file .env'
+dc config -q
 
 # Test against Let's Encrypt staging first (expect a browser cert warning):
 #   ACME_CA=https://acme-staging-v02.api.letsencrypt.org/directory
-docker compose -f deploy/hetzner/docker-compose.yml up -d --build
+dc up -d --build
 
-docker compose -f deploy/hetzner/docker-compose.yml exec layersapp \
-    /opt/layerindex/manage.py migrate
-docker compose -f deploy/hetzner/docker-compose.yml exec layersapp \
-    /opt/layerindex/manage.py collectstatic --noinput
-docker compose -f deploy/hetzner/docker-compose.yml exec layersapp \
-    /opt/layerindex/manage.py createsuperuser
+# Docker creates the static and task-log volumes owned by root, but the app
+# runs as `layers`. Fix once; the ownership is stored in the volumes.
+dc exec -u root layersapp chown -R layers /usr/share/nginx/html /opt/layerindex-task-logs
+
+dc exec layersapp /opt/layerindex/manage.py migrate
+dc exec layersapp /opt/layerindex/manage.py collectstatic --noinput
+dc exec layersapp /opt/layerindex/manage.py createsuperuser
 ```
 
 Switching from staging to production: comment out `ACME_CA`, then **delete the
-staging artifacts** or Caddy will keep serving the untrusted cert.
+staging artifacts** or Caddy will keep serving the untrusted cert. Use `up -d`,
+not `restart`: `restart` does not pick up changes to `.env`.
 
 ```sh
-docker compose -f deploy/hetzner/docker-compose.yml exec layerscaddy \
+dc exec layerscaddy \
   rm -rf /data/caddy/certificates/acme-staging-v02.api.letsencrypt.org-directory
-docker compose -f deploy/hetzner/docker-compose.yml restart layerscaddy
+dc up -d layerscaddy
 ```
 
 ### 5. Optional hardening you may append now
@@ -220,6 +237,7 @@ These are worth knowing about regardless of Caddy:
 | `MYSQL_ROOT_PASSWORD=testingpw` inline | Credentials in the tracked file | everything from `.env`, required via `${VAR:?}` |
 | `hostname: localhost` | Becomes `ALLOWED_HOSTS` (see above) | explicit `HOSTNAME` env |
 | no healthchecks | Celery/app race the DB on cold start | `service_healthy` gating |
+| no `DJANGO_SETTINGS_MODULE` | The celery worker imports `layerindex.tasks` directly and exits with `ImproperlyConfigured` | set to `settings` for all app containers |
 
 ## What you lose, and what to do about it
 
@@ -400,12 +418,11 @@ cp deploy/authentik/templates/registration/login.html templates/registration/
 cp deploy/authentik/templates/django_registration/registration_closed.html \
    templates/django_registration/
 
-# 5. configure and restart
+# 5. configure and restart (dc alias from phase 1, step 4)
 $EDITOR .env      # AUTHENTIK_URL, AUTHENTIK_APP_SLUG, OIDC_RP_CLIENT_ID/SECRET,
                   # OIDC_STAFF_GROUPS, OIDC_SUPERUSER_GROUPS
-docker compose -f deploy/hetzner/docker-compose.yml up -d --build
-docker compose -f deploy/hetzner/docker-compose.yml exec layersapp \
-    /opt/layerindex/manage.py collectstatic --noinput
+dc up -d --build
+dc exec layersapp /opt/layerindex/manage.py collectstatic --noinput
 ```
 
 Routes added: `oidc/authenticate/`, `oidc/callback/`, `oidc/logout/`. Nothing
@@ -474,14 +491,16 @@ which is fine).
 - `OIDCAuthenticationBackend.authenticate()` returning `None` without
   `code`/`state` — the property the backend ordering depends on — confirmed by
   reading the 5.0.2 wheel.
+- `mozilla-django-oidc` 5.0.2 (wheel and sdist) is available on the safetycli
+  index that `requirements.txt` pins.
+- End-to-end deployment on a Hetzner VM (`layers.moto-timo.io`, October 2026):
+  staging and then production certificates issued over IPv4 and IPv6, site and
+  API served over HTTPS, celery worker running.
 
 ## Not verified
 
 - Actual `LAYER_FETCH_DIR` size (60–120 GB is an estimate from 622 layers /
   ~400 repos; measure after the first full update run).
-- Whether `mozilla-django-oidc` is mirrored on the safetycli index the
-  `requirements.txt` pins.
-- End-to-end ACME issuance, which needs real DNS and a real Hetzner VM.
 
 ## Sources
 
