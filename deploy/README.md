@@ -437,7 +437,9 @@ the email-based linking.
 ### Existing local accounts
 
 Nothing breaks. Local login, security-question reset and the admin all keep
-working. Users who log in via SSO with a matching verified email are linked to
+working. With SSO on, the login page shows only the SSO button; the local form
+is still at `/accounts/login/?local=1` for break-glass access. Django already
+refuses password-reset mail to accounts with an unusable password. Users who log in via SSO with a matching verified email are linked to
 their existing account on first SSO login and keep all their layer maintainer
 associations. `UserProfile` and security-question rows are only created by the
 registration flow, so SSO-created users have none — every access to

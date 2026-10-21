@@ -12,11 +12,15 @@
     {% trans "Sign in with SSO" %}
   </a>
 </p>
-<hr>
-<p class="text-muted">{% trans "Or sign in with a local account:" %}</p>
 {% endif %}
 
-<form id="login_form" method="post" action="." autocomplete="off">
+{% comment %}
+With SSO on, the local form is only for break-glass access via ?local=1.
+action="" keeps the query string, so a failed attempt still shows the form.
+{% endcomment %}
+{% if not oidc_enabled or request.GET.local or form.errors %}
+{% if oidc_enabled %}<hr>{% endif %}
+<form id="login_form" method="post" action="" autocomplete="off">
   {{ form.as_p }}
 
   <input type="submit" class="btn btn-default" value="{% trans 'Log in' %}" />
@@ -25,6 +29,7 @@
 </form>
 
 <p>{% trans "Forgot password" %}? <a href="{% url "password_reset" %}">{% trans "Reset it" %}</a>!</p>
+{% endif %}
 {% if registration_open %}
 <p>{% trans "Don't have an account" %}? <a href="{% url "django_registration_register" %}">{% trans "Create one now" %}</a>!</p>
 {% endif %}
