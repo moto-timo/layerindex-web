@@ -46,6 +46,8 @@ x-app-env: &app-env
   OIDC_STAFF_GROUPS: ${OIDC_STAFF_GROUPS:-}
   OIDC_SUPERUSER_GROUPS: ${OIDC_SUPERUSER_GROUPS:-}
   REGISTRATION_OPEN: ${REGISTRATION_OPEN:-1}
+  # Recipe Reporting System. Run migrate after turning it on.
+  ENABLE_RRS: ${ENABLE_RRS:-0}
 
 x-app-common: &app-common
   image: layerindex-app:local
@@ -116,6 +118,22 @@ services:
     command: >-
       /usr/local/bin/celery --workdir=/opt/layerindex --app layerindex.tasks
       worker --loglevel=INFO --concurrency=${CELERY_CONCURRENCY:-2}
+
+  # Layer and RRS updates, run by the systemd timers in deploy/hetzner/systemd/
+  # as throwaway containers. Never started by `up`.
+  layersupdate:
+    <<: *app-common
+    profiles: [tools]
+    restart: "no"
+    depends_on:
+      layersdb:
+        condition: service_healthy
+    # Cap memory so a large parse (e.g. the meta-ros2 layers) can only get
+    # this container killed, never the web server or database. Beyond
+    # mem_limit it may use swap up to memswap_limit (RAM plus swap).
+    mem_limit: ${UPDATE_MEM_LIMIT:-2500m}
+    memswap_limit: ${UPDATE_MEMSWAP_LIMIT:-6g}
+    command: /opt/updatelayers.sh
 
   layerscaddy:
     image: caddy:2.11.7-alpine

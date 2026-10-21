@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: MIT
+[Unit]
+Description=Run layer update and RRS at midnight
+
+[Timer]
+Unit=rrs-update.service
+OnCalendar=*-*-* 00:01:00
+
+[Install]
+WantedBy=timers.target

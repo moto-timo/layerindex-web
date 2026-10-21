@@ -219,6 +219,26 @@ dc up -d layerscaddy
 `DEBUG` is off, since Caddy only serves the site over HTTPS. SSO stays off until
 you set `OIDC_RP_CLIENT_ID`.
 
+### 6. Scheduled layer and RRS updates
+
+`deploy/hetzner/systemd/` has two timers. `layersupdate.timer` runs the layer
+update every three hours except midnight; `rrs-update.timer` runs the RRS tools
+at 00:01. Each runs a throwaway container from the `layersupdate` compose
+service (profile `tools`, so `dc up` never starts it), with memory capped by
+`UPDATE_MEM_LIMIT`/`UPDATE_MEMSWAP_LIMIT` so a large parse can only kill that
+container. Both take the same `flock`, so they never run at the same time.
+
+RRS needs `ENABLE_RRS=1` in `.env`, then `dc up -d` and `migrate`. Its tools
+write their logs to the current directory, so `rrs-update.service` runs them
+from the writable `/opt/workdir` volume.
+
+```sh
+sudo cp deploy/hetzner/systemd/* /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now layersupdate.timer rrs-update.timer
+systemctl list-timers layersupdate.timer rrs-update.timer
+```
+
 ## Bugs in the upstream compose file, fixed here
 
 These are worth knowing about regardless of Caddy:
