@@ -1,0 +1,27 @@
+# Copy to /etc/systemd/system/, then: systemctl daemon-reload &&
+# systemctl enable --now rrs-update.timer
+# Needs ENABLE_RRS=1 in .env.
+#
+# SPDX-License-Identifier: MIT
+[Unit]
+Description=Update the layerindex's RRS
+Wants=rrs-update.timer
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/srv/layerindex-web
+# Own container name, so this never kills a running layer update
+ExecStartPre=-/usr/bin/docker rm -f rrsupdate-throwaway
+# Waits for any running layer update (same lock as layersupdate.service).
+# layersupdate.service already updates the layers, so run only the RRS
+# tools that rrs/tools/daily_run.sh runs after it. They write their logs to
+# the current directory (TOOLS_LOG_DIR is empty), so run them from the
+# writable /opt/workdir volume rather than /opt/layerindex.
+ExecStart=/usr/bin/flock /run/lock/layerindex-update.lock /usr/bin/docker compose -f deploy/hetzner/docker-compose.yml --env-file .env run --rm -T --name rrsupdate-throwaway -w /opt/workdir layersupdate sh -c 'for s in maintainer_history upgrade_history upstream_history distros; do /opt/layerindex/rrs/tools/rrs_$${s}.py -d || exit 1; done'
+ExecStop=-/usr/bin/docker kill rrsupdate-throwaway
+Restart=no
+
+[Install]
+WantedBy=multi-user.target

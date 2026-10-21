@@ -1,0 +1,24 @@
+# Copy to /etc/systemd/system/, then: systemctl daemon-reload &&
+# systemctl enable --now layersupdate.timer
+#
+# SPDX-License-Identifier: MIT
+[Unit]
+Description=Update the layerindex
+Wants=layersupdate.timer
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/srv/layerindex-web
+# Remove a container left over from an earlier run. A run still in progress
+# is never affected: systemd does not start this service while it is active.
+ExecStartPre=-/usr/bin/docker rm -f updatelayers-throwaway
+# The layer update and the RRS update share the layer checkouts, so take
+# the same lock as rrs-update.service and run one at a time.
+ExecStart=/usr/bin/flock /run/lock/layerindex-update.lock /usr/bin/docker compose -f deploy/hetzner/docker-compose.yml --env-file .env run --rm -T --name updatelayers-throwaway layersupdate
+ExecStop=-/usr/bin/docker kill updatelayers-throwaway
+Restart=no
+
+[Install]
+WantedBy=multi-user.target
