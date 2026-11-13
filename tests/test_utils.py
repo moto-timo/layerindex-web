@@ -85,3 +85,16 @@ def test_in_nested_layer(repo_with_nested_layers, path, expected):
     assert utils.in_nested_layer(path, nested, repodir) is expected
     # Absolute paths give the same answer
     assert utils.in_nested_layer(os.path.join(repodir, path), nested, repodir) is expected
+
+
+@pytest.mark.parametrize('html, expected', [
+    # Allowed tags are kept, but lose their attributes
+    ('<p class="x" onclick="y">Hi <b>there</b></p>', '<p>Hi <b>there</b></p>'),
+    ('<ul><li>one</li></ul>', '<ul><li>one</li></ul>'),
+    # Other tags are dropped, but their text stays (escaped)
+    ('<a href="http://example.com">link</a>', 'link'),
+    ('<script>alert(1)</script>', 'alert(1)'),
+    ('<div><i>x</i> &lt;y&gt;</div>', '<i>x</i> &lt;y&gt;'),
+])
+def test_sanitise_html(html, expected):
+    assert utils.sanitise_html(html) == expected
