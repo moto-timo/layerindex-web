@@ -544,13 +544,13 @@ def run_command_interruptible(cmd):
 
 def sanitise_html(html):
     soup = BeautifulSoup(html, "html.parser")
-    for tag in soup.findAll(True):
+    for tag in soup.find_all(True):
         if tag.name not in ['strong', 'em', 'b', 'i', 'p', 'ul', 'ol', 'li', 'br', 'p']:
             tag.hidden = True
         elif tag.attrs:
-            tag.attrs = []
+            tag.attrs = {}
 
-    return soup.renderContents()
+    return soup.decode_contents()
 
 def squashspaces(string):
     return re.sub(r"\s+", " ", string).strip()
