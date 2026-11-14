@@ -160,20 +160,23 @@ def _add_dependency(var, name, layerbranch, config_data, logger=None, required=T
 
     dep_list = config_data.getVar("%s_%s" % (var, var_name), True)
 
-    if not dep_list:
-        return
-
-    try:
-        dep_dict = bb.utils.explode_dep_versions2(dep_list)
-    except bb.utils.VersionStringException as vse:
-        logger.debug('Error parsing %s_%s for %s\n%s' % (var, var_name, layer_name, str(vse)))
-        return
+    dep_dict = {}
+    if dep_list:
+        try:
+            dep_dict = bb.utils.explode_dep_versions2(dep_list)
+        except bb.utils.VersionStringException as vse:
+            logger.debug('Error parsing %s_%s for %s\n%s' % (var, var_name, layer_name, str(vse)))
+            return
 
     need_remove = LayerDependency.objects.filter(layerbranch=layerbranch).filter(required=required)
     for dep, ver_list in list(dep_dict.items()):
         ver_str = None
         if ver_list:
             ver_str = ver_list[0]
+
+        # Keep any dependency still named here, even if it can't be resolved
+        # (e.g. its version doesn't match)
+        need_remove = need_remove.exclude(dependency__name=dep).exclude(dependency__layerbranch__collection=dep)
 
         try:
             dep_layer = get_dependency_layer(dep, branch_name, ver_str, logger)
@@ -191,13 +194,12 @@ def _add_dependency(var, name, layerbranch, config_data, logger=None, required=T
                     logger.warning('Cannot resolve %s %s (version %s) for %s' % (name, dep, ver_str, layer_name))
             continue
 
-        # Preparing to remove obsolete ones
-        if need_remove:
-            need_remove = need_remove.exclude(dependency=dep_layer)
+        need_remove = need_remove.exclude(dependency=dep_layer)
 
-        # Skip existing entries.
-        existing = list(LayerDependency.objects.filter(layerbranch=layerbranch).filter(required=required).filter(dependency=dep_layer))
+        # Skip existing entries, noting that they are in conf/layer.conf
+        existing = LayerDependency.objects.filter(layerbranch=layerbranch).filter(required=required).filter(dependency=dep_layer)
         if existing:
+            existing.update(from_layer_conf=True)
             logger.debug('Skipping %s - already a dependency for %s' % (dep, layer_name))
             continue
 
@@ -208,17 +210,23 @@ def _add_dependency(var, name, layerbranch, config_data, logger=None, required=T
         layerdep.layerbranch = layerbranch
         layerdep.dependency = dep_layer
         layerdep.required = required
+        layerdep.from_layer_conf = True
         layerdep.save()
 
+    # Remove those that came from conf/layer.conf and are no longer there.
+    # Warn about those added by hand (or before this was recorded), unless
+    # REMOVE_LAYER_DEPENDENCIES says to remove them too.
+    from django.conf import settings
+    if not getattr(settings, 'REMOVE_LAYER_DEPENDENCIES', False):
+        if dep_list and need_remove.filter(from_layer_conf=False):
+            names = ', '.join(d.dependency.name for d in need_remove.filter(from_layer_conf=False))
+            logger.warning('%s %s of %s are not in its conf/layer.conf' % (var, names, layer_name))
+            logger.warning('Either set REMOVE_LAYER_DEPENDENCIES to remove them from the database, or fix conf/layer.conf')
+        need_remove = need_remove.filter(from_layer_conf=True)
     if need_remove:
-        from django.conf import settings
-        remove_layer_dependencies = getattr(settings, 'REMOVE_LAYER_DEPENDENCIES', False)
-        if remove_layer_dependencies:
-            logger.info('Removing obsolete dependencies "%s" for layer %s' % (need_remove, layer_name))
-            need_remove.delete()
-        else:
-            logger.warn('Dependencies "%s" are not in %s\'s conf/layer.conf' % (need_remove, layer_name))
-            logger.warn('Either set REMOVE_LAYER_DEPENDENCIES to remove them from the database, or fix conf/layer.conf')
+        logger.info('Removing %s %s of %s, which are no longer in its conf/layer.conf'
+                    % (var, ', '.join(d.dependency.name for d in need_remove), layer_name))
+        need_remove.delete()
 
 def set_layerbranch_collection_version(layerbranch, config_data, logger=None):
     layerbranch.collection = get_layer_var(config_data, 'BBFILE_COLLECTIONS', logger)

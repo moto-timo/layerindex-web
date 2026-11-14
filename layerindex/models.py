@@ -402,6 +402,9 @@ class LayerDependency(models.Model):
     layerbranch = models.ForeignKey(LayerBranch, related_name='dependencies_set', on_delete=models.CASCADE)
     dependency = models.ForeignKey(LayerItem, related_name='dependents_set', on_delete=models.CASCADE)
     required = models.BooleanField(default=True)
+    # Set when the dependency was found in conf/layer.conf, so that it can be
+    # removed when it goes from there; those added by hand are kept
+    from_layer_conf = models.BooleanField('From conf/layer.conf', default=False)
 
     class Meta:
         verbose_name_plural = "Layer dependencies"
