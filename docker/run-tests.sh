@@ -31,11 +31,13 @@ docker run --rm --network $NET -u root \
     -e SECRET_KEY=ci-only \
     -e GIT_AUTHOR_NAME=ci -e GIT_AUTHOR_EMAIL=ci@example.com \
     -e GIT_COMMITTER_NAME=ci -e GIT_COMMITTER_EMAIL=ci@example.com \
-    -v "$PWD/tests:/src/tests:ro" -w /opt/layerindex "$IMAGE" sh -ec '
+    -v "$PWD/tests:/src/tests:ro" \
+    -v "$PWD/requirements-dev.txt:/src/requirements-dev.txt:ro" \
+    -w /opt/layerindex "$IMAGE" sh -ec '
         apt-get update -qq && apt-get install -y -qq tree >/dev/null
         cp -r /src/tests /opt/layerindex/
         chown -R layers /opt/layerindex
         su layers -s /bin/sh -c "set -e
             git clone -q https://git.openembedded.org/bitbake /opt/workdir/https___git_openembedded_org_bitbake
-            pip3 install -q --user --no-warn-script-location pytest==9.0.3 pytest-django==4.12.0
+            pip3 install -q --user --no-warn-script-location -r /src/requirements-dev.txt
             python3 -m pytest -rfE -p no:cacheprovider tests/"'

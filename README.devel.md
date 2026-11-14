@@ -170,10 +170,13 @@ worker, for emails sent from background tasks) instead of being sent.
 
 ## Running the tests
 
-The tests use pytest and pytest-django, which are not in `requirements.txt`:
+The tests use pytest and pytest-django. These and the other development tools
+are pinned in `requirements-dev.txt`, which the dev container and
+`docker/run-tests.sh` install for you. Elsewhere, install them on top of
+`requirements.txt`:
 
 ```sh
-pip install pytest pytest-django
+pip install -r requirements-dev.txt
 ```
 
 To run the full suite as CI does, in the Docker image against a throwaway
