@@ -16,6 +16,8 @@ import optparse
 import codecs
 import logging
 import subprocess
+import shlex
+import tempfile
 from datetime import datetime, timedelta
 from packaging_legacy.version import parse as parse_version
 import utils
@@ -36,7 +38,7 @@ except ImportError:
     sys.exit(1)
 
 
-def prepare_update_layer_command(options, branch, layer, initial=False):
+def prepare_update_layer_command(options, branch, layer, initial=None):
     """Prepare the update_layer.py command line"""
     if branch.update_environment:
         cmdprefix = branch.update_environment.get_command()
@@ -54,7 +56,7 @@ def prepare_update_layer_command(options, branch, layer, initial=False):
     if options.dryrun:
         cmd += ' -n'
     if initial:
-        cmd += ' -i'
+        cmd += ' -i %s' % shlex.quote(initial)
     if options.loglevel == logging.DEBUG:
         cmd += ' -d'
     elif options.loglevel == logging.ERROR:
@@ -460,10 +462,15 @@ def main():
                             logger.error("conf/layer.conf not found for layer %s (branch %s) - is subdirectory set correctly?" % (layer.name, branch))
                             continue
 
-                    cmd = prepare_update_layer_command(options, branchobj, layer, initial=True)
+                    fd, initial_fn = tempfile.mkstemp(prefix='layerindex-initial-')
+                    os.close(fd)
+                    cmd = prepare_update_layer_command(options, branchobj, layer, initial=initial_fn)
                     logger.debug('Running layer update command: %s' % cmd)
                     ret, output = utils.run_command_interruptible(cmd)
                     logger.debug('output: %s' % output)
+                    with open(initial_fn) as f:
+                        initial_values = f.read()
+                    os.remove(initial_fn)
                     if ret == 254:
                         # Interrupted by user, break out of loop
                         logger.info('Update interrupted, exiting')
@@ -482,14 +489,14 @@ def main():
                             layerupdate.save()
                         continue
 
-                    col = extract_value('BBFILE_COLLECTIONS', output)
+                    col = extract_value('BBFILE_COLLECTIONS', initial_values)
                     if not col:
-                        logger.error('Unable to find BBFILE_COLLECTIONS value in initial output')
+                        logger.error('Unable to find BBFILE_COLLECTIONS value in initial values')
                         # Assume (perhaps naively) that it's an error specific to the layer
                         continue
-                    ver = extract_value('LAYERVERSION', output)
-                    deps = extract_value('LAYERDEPENDS', output)
-                    recs = extract_value('LAYERRECOMMENDS', output)
+                    ver = extract_value('LAYERVERSION', initial_values)
+                    deps = extract_value('LAYERDEPENDS', initial_values)
+                    recs = extract_value('LAYERRECOMMENDS', initial_values)
 
                     if not options.nocheckout:
                         # We need to check this out because we're using stuff from bb.utils

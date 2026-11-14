@@ -163,6 +163,17 @@ def test_add_recipe(import_layer, repo, db_access_without_rollback_and_truncate)
     assert recipe.summary == "Brand new recipe"
     assert recipe.license == "MIT"
 
+def test_initial_values_not_in_output(import_layer):
+    # [YOCTO #12130] update.py gets the values it needs from the first parse
+    # of conf/layer.conf through a file, not from the output it shows
+    result = subprocess.run("layerindex/update.py -r -n -l meta-layerindex-test --nofetch --nocheckout",
+                            shell=True, cwd=basepath, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, text=True)
+    assert result.returncode == 0, result.stdout
+    assert 'BBFILE_COLLECTIONS = ' not in result.stdout
+    assert 'Unable to find BBFILE_COLLECTIONS' not in result.stdout
+
+
 
 
 # FIXME test recipe modify

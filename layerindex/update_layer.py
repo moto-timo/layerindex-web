@@ -290,8 +290,8 @@ def main():
             help = "Stop on first parsing error",
             action="store_true", default=False, dest="stop_on_error")
     parser.add_option("-i", "--initial",
-            help = "Print initial values parsed from layer.conf only",
-            action="store_true")
+            help = "Write the initial values parsed from layer.conf to FILE, and do nothing else",
+            action="store", metavar="FILE")
     parser.add_option("-a", "--actual-branch",
             help = "Specify actual_branch for git checkout",
             action="store", dest="actual_branch", default=None)
@@ -454,9 +454,11 @@ def main():
                     sys.exit(1)
                 utils.set_layerbranch_collection_version(layerbranch, layer_config_data, logger=logger)
                 if options.initial:
-                    # Use print() rather than logger.info() since "-q" makes it print nothing.
-                    for i in ["BBFILE_COLLECTIONS", "LAYERVERSION", "LAYERDEPENDS", "LAYERRECOMMENDS"]:
-                        print('%s = "%s"' % (i, utils.get_layer_var(layer_config_data, i, logger)))
+                    # Write these to a file rather than the output, which is
+                    # shown on the console and in the update log
+                    with open(options.initial, 'w') as f:
+                        for i in ["BBFILE_COLLECTIONS", "LAYERVERSION", "LAYERDEPENDS", "LAYERRECOMMENDS"]:
+                            f.write('%s = "%s"\n' % (i, utils.get_layer_var(layer_config_data, i, logger)))
                     sys.exit(0)
 
                 # Set up for recording patch info
