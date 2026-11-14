@@ -68,9 +68,11 @@ COPY docker/updatelayers.sh ${APP_DIR}/updatelayers.sh
 COPY docker/migrate.sh ${APP_DIR}/migrate.sh
 COPY docker/connectivity_check.sh ${APP_DIR}/connectivity_check.sh
 
-RUN mkdir ${APP_DIR}/workdir \
+# The task logs directory is a volume shared with layerscelery; create it
+# here so that the volume belongs to the layers user
+RUN mkdir ${APP_DIR}/workdir ${APP_DIR}/layerindex-task-logs \
 	&& adduser --system --uid=500 --home /home/layers layers \
-	&& chown -R layers ${APP_DIR}/workdir
+	&& chown -R layers ${APP_DIR}/workdir ${APP_DIR}/layerindex-task-logs
 USER layers
 
 # Always copy in .gitconfig and proxy helper script (they need editing to be active)
