@@ -124,10 +124,12 @@ def print_subdir_error(newbranch, layername, vcs_subdir, branchdesc):
     # This will error out if the directory is completely invalid or had never existed at this point
     # If it previously existed but has since been deleted, you will get the revision where it was
     # deleted - so we need to handle that case separately later
+    # Returns the error, if it is one, for the caller to record
     if newbranch:
         logger.info("Skipping update of layer %s for branch %s - subdirectory %s does not exist on this branch" % (layername, branchdesc, vcs_subdir))
     elif vcs_subdir:
-        logger.error("Subdirectory for layer %s does not exist on branch %s - if this is legitimate, the layer branch record should be deleted" % (layername, branchdesc))
+        return "Subdirectory for layer %s does not exist on branch %s - if this is legitimate, the layer branch record should be deleted" % (layername, branchdesc)
+    return None
 
 def extract_value(valuename, output):
     res = re.search("^%s = \"(.*)\"" % valuename, output, re.M)
@@ -289,6 +291,18 @@ def main():
             update.save(update_fields=['reload'])
         else:
             update.save()
+
+    def record_layer_error(layer, branchobj, msg, log=True):
+        """Record an error that stops a layer being updated against the layer,
+        so that it shows in its update history, not only in this update's log"""
+        if log:
+            logger.error(msg)
+        layerupdate = LayerUpdate(update=update, layer=layer, branch=branchobj,
+                                  started=datetime.now(), finished=datetime.now(),
+                                  log='ERROR: %s' % msg, retcode=1)
+        if not options.dryrun:
+            layerupdate.save()
+
     try:
         lockfn = os.path.join(fetchdir, "layerindex.lock")
         lockfile = utils.lock_file(lockfn, options.timeout, logger)
@@ -375,7 +389,8 @@ def main():
 
                 for layer in layerquery:
                     if layer.vcs_url in failedrepos:
-                        logger.info("Skipping update of layer %s - fetch failed" % layer.name)
+                        # fetch_repo() has already logged the error
+                        record_layer_error(layer, branchobj, "Fetch of layer %s failed: %s" % (layer.name, failedrepos[layer.vcs_url]), log=False)
                         continue
 
                     layerbranch = layer.get_layerbranch(branch)
@@ -412,7 +427,7 @@ def main():
                     repodir = os.path.join(fetchdir, urldir)
                     repo = git.Repo(repodir)
                     if repo.bare:
-                        logger.error('Repository %s is bare, not supported' % repodir)
+                        record_layer_error(layer, branchobj, 'Repository %s is bare, not supported' % repodir)
                         continue
                     try:
                         # Allow stable branches to be created if actual_branch exists
@@ -437,9 +452,11 @@ def main():
                         # A bit odd to do it this way but apparently there's no other way in the GitPython API
                         topcommit = next(repo.iter_commits('origin/%s' % branchname, paths=layerbranch.vcs_subdir), None)
                         if not topcommit:
-                            print_subdir_error(newbranch, layer.name, layerbranch.vcs_subdir, branchdesc)
+                            errmsg = print_subdir_error(newbranch, layer.name, layerbranch.vcs_subdir, branchdesc)
+                            if errmsg:
+                                record_layer_error(layer, branchobj, errmsg)
                             if not (newbranch and layerbranch.vcs_subdir):
-                                logger.error("Failed to get last revision for layer %s on branch %s" % (layer.name, branchdesc))
+                                record_layer_error(layer, branchobj, "Failed to get last revision for layer %s on branch %s" % (layer.name, branchdesc))
                             continue
 
                     if layerbranch.vcs_last_rev == topcommit.hexsha and not update.reload:
@@ -455,11 +472,13 @@ def main():
                                 utils.checkout_layer_branch(layerbranch, repodir, actual_branch=options.actual_branch, logger=logger)
                         layerdir = os.path.join(repodir, layerbranch.vcs_subdir)
                         if layerbranch.vcs_subdir and not os.path.exists(layerdir):
-                            print_subdir_error(newbranch, layer.name, layerbranch.vcs_subdir, branchdesc)
+                            errmsg = print_subdir_error(newbranch, layer.name, layerbranch.vcs_subdir, branchdesc)
+                            if errmsg:
+                                record_layer_error(layer, branchobj, errmsg)
                             continue
 
                         if not os.path.exists(os.path.join(layerdir, 'conf/layer.conf')):
-                            logger.error("conf/layer.conf not found for layer %s (branch %s) - is subdirectory set correctly?" % (layer.name, branch))
+                            record_layer_error(layer, branchobj, "conf/layer.conf not found for layer %s (branch %s) - is subdirectory set correctly?" % (layer.name, branch))
                             continue
 
                     fd, initial_fn = tempfile.mkstemp(prefix='layerindex-initial-')
@@ -491,7 +510,7 @@ def main():
 
                     col = extract_value('BBFILE_COLLECTIONS', initial_values)
                     if not col:
-                        logger.error('Unable to find BBFILE_COLLECTIONS value in initial values')
+                        record_layer_error(layer, branchobj, 'Unable to find BBFILE_COLLECTIONS value for layer %s - is it set in conf/layer.conf?' % layer.name)
                         # Assume (perhaps naively) that it's an error specific to the layer
                         continue
                     ver = extract_value('LAYERVERSION', initial_values)
@@ -560,7 +579,10 @@ def main():
                         for layer, value in deps_dict_all.items():
                             logger.warn('%s: LAYERDEPENDS: %s LAYERRECOMMENDS: %s' % (layer.name, value['deps'], value['recs']))
                             if value['deps']:
-                                failed_layers[branch].append('%s: Failed to add since LAYERDEPENDS [%s ...] is not satisfied' % (layer.name, next(iter(value['deps']))))
+                                failed_msg = '%s: Failed to add since LAYERDEPENDS [%s ...] is not satisfied' % (layer.name, next(iter(value['deps'])))
+                                failed_layers[branch].append(failed_msg)
+                                # Reported with the other issues at the end
+                                record_layer_error(layer, branchobj, failed_msg, log=False)
                             else:
                                 # Should never come here
                                 logger.error("Unexpected errors when sorting layers")
