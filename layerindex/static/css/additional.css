@@ -321,3 +321,11 @@ td.info {
     height: 400px;
     overflow-y: scroll;
 }
+
+/* "not updated" label: lighter than label-default, still readable. It also
+   has label-default, so a browser with an older copy of this file still
+   shows it. */
+.label-default.label-not-updated {
+    background-color: #e8e8e8;
+    color: #555;
+}

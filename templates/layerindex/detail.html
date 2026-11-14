@@ -125,6 +125,13 @@
                     <span class="text-muted"><small>Last commit: {{ layerbranch.vcs_last_commit|timesince }} ago ({{ layerbranch.get_checkout_branch }} branch)</small></span>
                     </p>
                     {% endif %}
+                    {% with reason=layerbranch.updates_disabled_reason %}
+                    {% if reason %}
+                    <p>
+                    <span class="label label-default label-not-updated">not updated</span> <small class="text-muted">{{ reason }}, so the information here may be out of date.</small>
+                    </p>
+                    {% endif %}
+                    {% endwith %}
 
                     {% if layerbranch.active_maintainers.count > 0 %}
                     <h3>{% if layerbranch.active_maintainers|length == 1 %}Maintainer{% else %}Maintainers{% endif %}</h3>

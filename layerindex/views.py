@@ -443,7 +443,7 @@ class LayerListView(ListView):
 
     def get_queryset(self):
         _check_url_branch(self.kwargs)
-        return LayerBranch.objects.filter(branch__name=self.kwargs['branch']).filter(layer__status__in=['P', 'X']).order_by('layer__layer_type', '-layer__index_preference', 'layer__name')
+        return LayerBranch.objects.filter(branch__name=self.kwargs['branch']).filter(layer__status__in=['P', 'X']).select_related('branch').order_by('layer__layer_type', '-layer__index_preference', 'layer__name')
 
     def get_context_data(self, **kwargs):
         context = super(LayerListView, self).get_context_data(**kwargs)

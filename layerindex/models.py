@@ -334,6 +334,17 @@ class LayerBranch(models.Model):
     def test_file_url(self):
         return self.file_url('conf/layer.conf')
 
+    def updates_disabled_reason(self):
+        """Why the update script no longer updates this layer branch, if it
+        doesn't"""
+        if self.layer.status == 'X':
+            return 'Updates are disabled for this layer'
+        if not self.branch.updates_enabled:
+            return 'Updates are disabled for the %s branch' % self.branch.name
+        if not self.updates_enabled:
+            return 'Updates are disabled for this layer on the %s branch' % self.branch.name
+        return ''
+
     def get_checkout_branch(self):
         """Get the branch that we actually need to check out in the repo"""
         if self.actual_branch:
