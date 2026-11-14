@@ -193,9 +193,17 @@
         </div> <!-- end of container-fluid -->
 
         {% if not layerbranch.vcs_last_commit %}
+        {% with lastupdate=updates.first %}
+        {% if lastupdate.errors %}
+        <div class="alert alert-danger">
+            <b>Warning:</b> The content of this layer on branch {{ url_branch }} could not be indexed: the last update, on {{ lastupdate.started }}, failed. See <a href="{% url 'layerupdate' lastupdate.id %}">its log</a> for the errors.
+        </div>
+        {% else %}
         <div class="alert alert-info">
             <b>Note:</b> The content of this layer on branch {{ url_branch }} has not yet been indexed. Indexing should take place within a few hours.
         </div>
+        {% endif %}
+        {% endwith %}
         {% endif %}
 
         <ul class="nav nav-tabs" id="layertabbar">
