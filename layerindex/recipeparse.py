@@ -24,7 +24,24 @@ class RecipeParseError(Exception):
 
 
 
-def init_parser(settings, branch, bitbakepath, enable_tracking=False, nocheckout=False, classic=False, logger=None):
+def layer_addpylibs(layerdir):
+    """
+    Return the addpylib statements in a layer's conf/layer.conf, with LAYERDIR
+    expanded. The BitBake server only processes addpylib while parsing its base
+    configuration, so these need to go in bblayers.conf for its recipe parsing
+    to be able to use the libraries.
+    """
+    lines = []
+    try:
+        with open(os.path.join(layerdir, 'conf', 'layer.conf')) as f:
+            for line in f:
+                if re.match(r'\s*addpylib\s', line):
+                    lines.append(line.strip().replace('${LAYERDIR}', layerdir))
+    except FileNotFoundError:
+        pass
+    return lines
+
+def init_parser(settings, branch, bitbakepath, enable_tracking=False, nocheckout=False, classic=False, logger=None, pylib_layerdirs=None):
     if not (nocheckout or classic):
         # Check out the branch of BitBake appropriate for this branch and clean out any stale files (e.g. *.pyc)
         if re.match('[0-9a-f]{40}', branch.bitbake_branch):
@@ -86,6 +103,10 @@ def init_parser(settings, branch, bitbakepath, enable_tracking=False, nocheckout
             # We need this to avoid problems with AVAILABLE_LICENSES
             f.write('COREBASE = "%s"\n' % core_repodir)
             f.write('BBLAYERS = "%s"\n' % core_layerdir)
+            # Python libraries of the layer being parsed and its dependencies
+            for layerdir in pylib_layerdirs or []:
+                for line in layer_addpylibs(layerdir):
+                    f.write(line + '\n')
         pass
 
     if logger:

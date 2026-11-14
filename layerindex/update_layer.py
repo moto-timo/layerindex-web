@@ -428,8 +428,15 @@ def main():
                             logger.warn("Unable to checkout dependent layer %s - %s" % (layerdependency.dependency, str(e)))
 
                 logger.info("Collecting data for layer %s on branch %s" % (layer.name, branchdesc))
+                # Layers whose addpylib libraries recipes may use (the core
+                # layer's are loaded through BBLAYERS)
+                pylib_layerdirs = [layerdir]
+                for dep in layerbranch.dependencies_set.all():
+                    deplayerbranch = dep.dependency.get_layerbranch(branch.name)
+                    if deplayerbranch and dep.dependency.name != settings.CORE_LAYER_NAME:
+                        pylib_layerdirs.append(os.path.join(fetchdir, dep.dependency.get_fetch_dir(), deplayerbranch.vcs_subdir))
                 try:
-                    (tinfoil, tempdir) = recipeparse.init_parser(settings, branch, bitbakepath, nocheckout=options.nocheckout, logger=logger)
+                    (tinfoil, tempdir) = recipeparse.init_parser(settings, branch, bitbakepath, nocheckout=options.nocheckout, logger=logger, pylib_layerdirs=pylib_layerdirs)
                 except recipeparse.RecipeParseError as e:
                     logger.error(str(e))
                     sys.exit(1)

@@ -144,6 +144,26 @@ def test_upgrade_recipe(import_layer, repo, db_access_without_rollback_and_trunc
     assert recipe.filename == 'upgrademe_0.2.bb'
     assert recipe.filepath == 'recipes-example/upgrademe'
 
+def test_addpylib_used_in_recipe(import_layer, repo, db_access_without_rollback_and_truncate):
+    # [YOCTO #16192] a recipe can use a Python library the layer adds with
+    # addpylib in conf/layer.conf, as it can in a build
+    from layerindex.models import LayerBranch, Recipe
+    layerdir = os.path.join(repo, 'meta-layerindex-test')
+    os.makedirs(os.path.join(layerdir, 'lib', 'layerindextestlib'))
+    with open(os.path.join(layerdir, 'lib', 'layerindextestlib', '__init__.py'), 'w') as f:
+        f.write('def summary():\n    return "Summary from addpylib"\n')
+    with open(os.path.join(layerdir, 'conf', 'layer.conf'), 'a') as f:
+        f.write('\naddpylib ${LAYERDIR}/lib layerindextestlib\n')
+    os.makedirs(os.path.join(layerdir, 'recipes-example', 'pylib'))
+    with open(os.path.join(layerdir, 'recipes-example', 'pylib', 'pylib_1.0.bb'), 'w') as f:
+        f.write('SUMMARY = "${@layerindextestlib.summary()}"\nLICENSE = "MIT"\n')
+    run_cmd('git add -A && git commit -m "Add a recipe that uses addpylib"', cwd=repo)
+    run_cmd("layerindex/update.py -d -l meta-layerindex-test --nofetch --nocheckout")
+    layerbranch = LayerBranch.objects.get(layer__name='meta-layerindex-test')
+    recipe = Recipe.objects.filter(layerbranch=layerbranch, pn='pylib').first()
+    assert recipe, 'pylib recipe not found'
+    assert recipe.summary == 'Summary from addpylib'
+
 def test_add_recipe(import_layer, repo, db_access_without_rollback_and_truncate):
     from layerindex.models import LayerBranch, Recipe
     layerbranch = LayerBranch.objects.get(layer__name='meta-layerindex-test')
