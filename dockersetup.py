@@ -427,6 +427,9 @@ def edit_settings_py(emailaddr, app_dir='/opt'):
         elif line.lstrip().startswith('LAYER_FETCH_DIR'):
             newlines.append("LAYER_FETCH_DIR = \"%s/workdir\"\n" % app_dir)
             continue
+        elif line.lstrip().startswith('TASK_LOG_DIR'):
+            newlines.append("TASK_LOG_DIR = \"%s/layerindex-task-logs\"\n" % app_dir)
+            continue
         newlines.append(line + "\n")
     writefile("docker/settings.py", ''.join(newlines))
 

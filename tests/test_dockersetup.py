@@ -22,6 +22,7 @@ TRACKED_FILES = [
     '.env.dev.app', '.env.dev.celery', '.env.dev.db', '.env.dev.rabbit',
     'Dockerfile',
     'docker/git-proxy', 'docker/.gitconfig', 'docker/nginx-ssl.conf',
+    'docker/settings.py',
 ]
 
 
@@ -113,6 +114,19 @@ def test_compose_uses_local_env_files(workdir):
     assert services['layersapp']['hostname'] == 'layers.example.com'
     assert services['layersweb']['ports'] == ['8080:80', '8081:443']
     assert 'layerscertbot' not in services
+
+
+def test_app_dir_moves_task_logs_with_the_volume(workdir):
+    # The task logs volume and TASK_LOG_DIR must agree, or the task log page
+    # can't find the logs the Celery worker writes
+    dockersetup.edit_dockercompose('layers.example.com', '8080:80,8081:443', False, app_dir='/srv/li')
+    dockersetup.edit_settings_py(None, app_dir='/srv/li')
+    services = load_compose(workdir)['services']
+    settings = (workdir / 'docker' / 'settings.py').read_text()
+    for service in ('layersapp', 'layerscelery'):
+        assert 'logvolume:/srv/li/layerindex-task-logs:z' in services[service]['volumes']
+    assert 'TASK_LOG_DIR = "/srv/li/layerindex-task-logs"' in settings
+    assert 'LAYER_FETCH_DIR = "/srv/li/workdir"' in settings
 
 
 def test_compose_enables_certbot_for_letsencrypt(workdir):
