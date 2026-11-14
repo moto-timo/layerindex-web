@@ -60,3 +60,25 @@ def test_run_update_command_keeps_fields_set_by_command(settings, tmp_path, monk
     assert update.reload
     assert (update.log, update.retcode) == ('output', 0)
     assert update.finished is not None
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize('finished, retcode, done, result', [
+    (False, 0, '0', None),
+    (True, 0, '1', '0'),
+    (True, 2, '1', '2'),
+])
+def test_task_log_reports_status_from_update(client, django_user_model, settings, tmp_path,
+                                             finished, retcode, done, result):
+    settings.TASK_LOG_DIR = str(tmp_path)
+    (tmp_path / 'task_test-task.log').write_text('line 1 <b>\n', encoding='utf-8')
+    Update.objects.create(started=datetime.now(), task_id='test-task', retcode=retcode,
+                          finished=datetime.now() if finished else None)
+    client.force_login(django_user_model.objects.create_user('user', 'user@example.com', 'pw'))
+
+    response = client.get(reverse('task_log', args=('test-task',)))
+
+    assert response.status_code == 200
+    assert response.content == b'line 1 &lt;b&gt;\n'
+    assert response['Task-Done'] == done
+    assert response.get('Task-Result') == result

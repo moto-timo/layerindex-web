@@ -1671,7 +1671,6 @@ class TaskStatusView(TemplateView):
         return context
 
 def task_log_view(request, task_id):
-    from celery.result import AsyncResult
     if not request.user.is_authenticated:
         raise PermissionDenied
 
@@ -1679,7 +1678,11 @@ def task_log_view(request, task_id):
         # Block anything that looks like a path
         raise Http404
 
-    result = AsyncResult(task_id)
+    # The task records when it finished and its result in the Update. Read
+    # that before the log, which is complete by the time it is set. (The
+    # Celery result backend is no use here: with rpc:// only the process
+    # that started the task can read the result.)
+    updateobj = get_object_or_404(Update, task_id=task_id)
     start = int(request.GET.get('start', 0))
     try:
         f = open(os.path.join(settings.TASK_LOG_DIR, 'task_%s.log' % task_id), 'rb')
@@ -1693,24 +1696,13 @@ def task_log_view(request, task_id):
         datastr = re.sub(b'\n[^\n]+\r', b'\n', datastr)
         # We need to escape this or else things that look like tags in the output
         # will be interpreted as such by the browser
-        data = escape(datastr)
+        data = escape(datastr.decode('utf-8', errors='replace'))
         response = HttpResponse(data)
-        try:
-            ready = result.ready()
-        except ConnectionResetError:
-            # FIXME this shouldn't be happening so often, but ultimately we don't care -
-            # the frontend is polling so it'll likely succeed in a subsequent request
-            ready = False
-        if ready:
+        if updateobj.finished:
             response['Task-Done'] = '1'
-            updateobj = get_object_or_404(Update, task_id=task_id)
             response['Task-Duration'] = utils.timesince2(updateobj.started, updateobj.finished)
             response['Task-Progress'] = 100
-            if result.info:
-                if isinstance(result.info, dict):
-                    response['Task-Result'] = result.info.get('retcode', None)
-                else:
-                    response['Task-Result'] = -1
+            response['Task-Result'] = updateobj.retcode
         else:
             response['Task-Done'] = '0'
             preader = utils.ProgressReader(settings.TASK_LOG_DIR, task_id)
