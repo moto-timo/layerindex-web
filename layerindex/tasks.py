@@ -16,13 +16,11 @@ import subprocess
 import shlex
 from datetime import datetime
 
-try:
-    from django.conf import settings
-except ImportError:
-    # not in a full django env, so settings is inaccessible.
-    # setup django to access settings.
-    utils.setup_django()
-    from django.conf import settings
+# The Celery worker imports this module outside Django; point it at the
+# settings, as utils.setup_django() does. (Importing django.conf always
+# succeeds; the settings are only loaded when first used.)
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
+from django.conf import settings
 
 tasks = Celery('layerindex',
     broker=settings.RABBIT_BROKER,
