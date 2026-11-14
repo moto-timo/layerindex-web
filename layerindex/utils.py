@@ -182,7 +182,7 @@ def _add_dependency(var, name, layerbranch, config_data, logger=None, required=T
             dep_layer = get_dependency_layer(dep, branch_name, ver_str, logger)
         except bb.utils.VersionStringException as vse:
             if logger:
-                logger.error('Error getting %s %s for %s:%s\n%s' %(name, dep. layer_name, branch_name, str(vse)))
+                logger.error('Error getting %s %s for %s:%s\n%s' % (name, dep, layer_name, branch_name, str(vse)))
             continue
 
         # No layer found.
