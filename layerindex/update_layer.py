@@ -248,7 +248,9 @@ def update_distro_conf_file(path, distro, d):
 
     distro_name = ''
     try:
-        d = utils.parse_conf(path, d)
+        # Parse into a copy: d is also used to parse the layer's recipes,
+        # which must not get this distro's configuration
+        d = utils.parse_conf(path, d.createCopy())
         distro_name = d.getVar('DISTRO_NAME', True)
     except Exception as e:
         logger.warn('Error parsing distro configuration file %s: %s' % (path, str(e)))
