@@ -40,6 +40,8 @@ def test_update_layer_creates_one_update(staff_client, monkeypatch):
     assert Update.objects.filter(task_id=task_id).exists()
     # update.py records its work in the view's Update rather than a new one
     assert '--update %update%' in cmd
+    # and waits for an update that is already running
+    assert '--timeout 43200' in cmd
 
 
 @pytest.mark.django_db

@@ -459,8 +459,7 @@ class ListHandler(logging.Handler):
 
 def lock_file(fn, timeout=30, logger=None):
     start = time.time()
-    last = start
-    counter = 1
+    last = None
     while True:
         lock = open(fn, 'w')
         try:
@@ -471,11 +470,12 @@ def lock_file(fn, timeout=30, logger=None):
             current = time.time()
             if current - start > timeout:
                 return None
-            # Print a message in every 5 seconds
-            if logger and (current - last > 5):
+            # Say why we are waiting, then once a minute
+            if logger and (last is None or current - last >= 60):
                 last = current
-                logger.info('Trying to get lock on %s (tried %s seconds) ...' % (fn, (5 * counter)))
-                counter += 1
+                logger.info('Waiting for another update to finish (lock %s held, waited %d of up to %d seconds) ...'
+                            % (fn, current - start, timeout))
+            time.sleep(1)
 
 def unlock_file(lock):
     fcntl.flock(lock, fcntl.LOCK_UN)

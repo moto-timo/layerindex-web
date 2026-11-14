@@ -43,6 +43,30 @@ def test_is_deps_satisfied(fake_bb, req_ver, collections, expected):
     assert utils.is_deps_satisfied('core', req_ver, collections) is expected
 
 
+def test_lock_file_waits_without_spinning(tmp_path, caplog):
+    # [YOCTO #15395] the Update Layer button waits for a running update
+    import fcntl
+    import logging
+    import threading
+    import time
+    fn = str(tmp_path / 'layerindex.lock')
+    held = open(fn, 'w')
+    fcntl.flock(held, fcntl.LOCK_EX)
+    logger = logging.getLogger('test')
+    with caplog.at_level(logging.INFO):
+        start, cpu = time.time(), time.process_time()
+        assert utils.lock_file(fn, timeout=2, logger=logger) is None
+        assert time.time() - start >= 2
+        assert time.process_time() - cpu < 0.5
+    assert len([r for r in caplog.records if 'Waiting for another update' in r.message]) == 1
+
+    threading.Timer(1, lambda: fcntl.flock(held, fcntl.LOCK_UN)).start()
+    lock = utils.lock_file(fn, timeout=10)
+    assert lock is not None
+    utils.unlock_file(lock)
+    held.close()
+
+
 def make_layer(path):
     (path / 'conf').mkdir(parents=True)
     (path / 'conf' / 'layer.conf').write_text('')

@@ -147,7 +147,9 @@ def update_layer_view(request, template_name, branch='master', slug=None):
 
     from celery import uuid
 
-    cmd = 'layerindex/update.py --layer %s --branch %s --update %%update%%;' % (layeritem.name, branch)
+    # Wait for an update that is already running (e.g. the regular full
+    # update, which can take hours) rather than failing after 30 seconds
+    cmd = 'layerindex/update.py --layer %s --branch %s --update %%update%% --timeout 43200;' % (layeritem.name, branch)
 
     task_id = uuid()
     # Create this here first, because inside the task we don't have all of the required info
