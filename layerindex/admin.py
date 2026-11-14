@@ -7,7 +7,8 @@
 # SPDX-License-Identifier: MIT
 
 from layerindex.models import *
-from django.contrib import admin
+from django.conf import settings
+from django.contrib import admin, messages
 from reversion_compare.admin import CompareVersionAdmin
 from django.forms import TextInput
 from django.contrib.sites.models import Site
@@ -238,4 +239,25 @@ admin.site.register(PythonEnvironment)
 admin.site.register(SiteNotice)
 admin.site.register(SecurityQuestion)
 admin.site.register(SecurityQuestionAnswer)
-admin.site.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'previous_email')
+    search_fields = ('user__username', 'user__email', 'previous_email')
+    actions = ['approve_maintainer_email_change']
+
+    @admin.action(description='Approve moving maintainer records to the new email address')
+    def approve_maintainer_email_change(self, request, queryset):
+        from django.core.mail import send_mail
+        for profile in queryset.exclude(previous_email=''):
+            user = profile.user
+            if not user.is_active:
+                # The new address hasn't been confirmed yet
+                self.message_user(request, '%s has not confirmed their new address yet; nothing moved' % user.username, messages.WARNING)
+                continue
+            moved = profile.move_maintainer_records()
+            if moved:
+                send_mail('Maintainer email address updated on %s' % Site.objects.get_current().name,
+                          'Your maintainer records were moved to %s for:\n\n  %s\n' % (user.email, '\n  '.join(moved)),
+                          settings.DEFAULT_FROM_EMAIL, [user.email])
+            self.message_user(request, 'Moved %d maintainer records of %s to %s' % (len(moved), user.username, user.email))
+
+admin.site.register(UserProfile, UserProfileAdmin)

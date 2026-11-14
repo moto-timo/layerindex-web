@@ -211,6 +211,9 @@ class EditNoteForm(StyledModelForm):
 
 
 class EditProfileForm(StyledModelForm):
+    current_password = forms.CharField(label='Current password', required=False, strip=False,
+                                       widget=forms.PasswordInput(attrs={'autocomplete': 'current-password'}),
+                                       help_text='Needed to change your email address')
     captcha = CaptchaField(label='Verification', help_text='Please enter the letters displayed for verification purposes', error_messages={'invalid':'Incorrect entry, please try again'})
     security_question_1 = forms.ModelChoiceField(queryset=SecurityQuestion.objects.all())
     answer_1 = forms.CharField(widget=forms.TextInput(), label='Answer', initial="*****")
@@ -265,6 +268,11 @@ class EditProfileForm(StyledModelForm):
 
     def clean(self):
         cleaned_data = super(EditProfileForm, self).clean()
+        # A logged-in session alone must not be enough to change the address
+        # that layer edit rights and password resets are tied to
+        if 'email' in self.changed_data:
+            if not self.instance.check_password(cleaned_data.get('current_password') or ''):
+                self.add_error('current_password', 'Enter your current password to change your email address')
         for data in self.changed_data:
             # Check if a security answer has been updated. If one is updated, they must all be
             # and each security question must be unique.

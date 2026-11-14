@@ -24,6 +24,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Permission, User
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.sites.models import Site
+from django.core.mail import mail_admins, send_mail
 from django.core.exceptions import PermissionDenied
 from django.urls import resolve, reverse, reverse_lazy
 from django.db import transaction
@@ -43,6 +44,7 @@ from django.views.generic.base import RedirectView
 from django.views.generic.edit import (CreateView, DeleteView, FormView,
                                        UpdateView)
 from django_registration.backends.activation.views import RegistrationView
+from django_registration.signals import user_activated
 from reversion.models import Revision
 
 from django.conf import settings
@@ -1005,6 +1007,30 @@ class HistoryListView(ListView):
         return Revision.objects.all().order_by('-date_created')
 
 
+@receiver(user_activated)
+def request_maintainer_email_change(sender, user, request, **kwargs):
+    """Once a changed email address is confirmed, ask the site admins to
+    approve moving the user's maintainer records to it, since that gives the
+    new address edit rights on the layers."""
+    profile = UserProfile.objects.filter(user=user).exclude(previous_email='').first()
+    if not profile:
+        return
+    layers = sorted(set('%s (%s)' % (m.layerbranch.layer.name, m.layerbranch.branch.name)
+                        for m in profile.pending_maintainer_records().select_related('layerbranch__layer', 'layerbranch__branch')))
+    if not layers:
+        profile.previous_email = ''
+        profile.save(update_fields=['previous_email'])
+        return
+    mail_admins('Approve maintainer email change for %s' % user.username,
+                'User "%s" changed their email address from %s to %s and confirmed it.\n'
+                'Their maintainer records for these layers will move to the new address once you\n'
+                'approve it ("Approve moving maintainer records" on their user profile):\n\n  %s\n\n%s\n'
+                % (user.username, profile.previous_email, user.email, '\n  '.join(layers),
+                   request.build_absolute_uri(reverse('admin:layerindex_userprofile_change', args=(profile.pk,)))))
+    messages.info(request, 'Your new email address is confirmed. Your maintainer records for %s will move to it '
+                  'once a site administrator approves the change; you will be emailed then.' % ', '.join(layers))
+
+
 class EditProfileFormView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     form_class = EditProfileForm
 
@@ -1058,6 +1084,22 @@ class EditProfileFormView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
                                                   answer=make_password(answer_3))
 
         if 'email' in form.changed_data:
+            # Remember the confirmed address, so that once the new one is
+            # confirmed the user's maintainer records can move to it. Keep the
+            # first one if the address is changed again before that.
+            old_email = form.initial.get('email', '')
+            profile, _ = UserProfile.objects.get_or_create(user=self.user)
+            if not profile.previous_email:
+                profile.previous_email = old_email
+                profile.save(update_fields=['previous_email'])
+            # Tell the old address, in case it wasn't the owner who did this
+            if old_email:
+                site = Site.objects.get_current()
+                send_mail('Email address changed on %s' % site.name,
+                          'The email address of your account "%s" on %s was changed to %s.\n\n'
+                          'If you did not do this, please contact the site administrators.\n'
+                          % (self.user.username, site.name, form.cleaned_data['email']),
+                          settings.DEFAULT_FROM_EMAIL, [old_email])
             # Take a copy of request.user as it is about to be invalidated by logout()
             user = self.request.user
             logout(self.request)

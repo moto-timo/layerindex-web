@@ -973,6 +973,26 @@ class SecurityQuestion(models.Model):
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     answer_attempts = models.IntegerField(default=0)
+    # The confirmed email address before a change of address that has not
+    # been confirmed yet, to move the user's maintainer records once it is
+    previous_email = models.CharField(max_length=255, blank=True)
+
+    def pending_maintainer_records(self):
+        """Maintainer records still under the user's previous address"""
+        if not self.previous_email or self.previous_email.strip().lower() == self.user.email.strip().lower():
+            return LayerMaintainer.objects.none()
+        return LayerMaintainer.objects.filter(email__iexact=self.previous_email.strip())
+
+    def move_maintainer_records(self):
+        """Move the maintainer records to the user's current address. Returns
+        the layer branches they are for, as "layer (branch)"."""
+        maintainers = self.pending_maintainer_records()
+        moved = sorted('%s (%s)' % (m.layerbranch.layer.name, m.layerbranch.branch.name)
+                       for m in maintainers.select_related('layerbranch__layer', 'layerbranch__branch'))
+        maintainers.update(email=self.user.email)
+        self.previous_email = ''
+        self.save(update_fields=['previous_email'])
+        return moved
 
     def __str__(self):
         return '%s' % (self.user)
