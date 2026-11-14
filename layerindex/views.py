@@ -1059,6 +1059,11 @@ class EditProfileFormView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     def form_valid(self, form):
         self.object = form.save()
 
+        if 'notify_parse_errors' in form.changed_data:
+            profile, _ = UserProfile.objects.get_or_create(user=self.user)
+            profile.notify_parse_errors = form.cleaned_data['notify_parse_errors']
+            profile.save(update_fields=['notify_parse_errors'])
+
         if'answer_1' in form.changed_data:
             # If one security answer has changed, they all have. Delete current questions and add new ones.
             # Don't throw an error if we are editing the super user and they don't have security questions yet.

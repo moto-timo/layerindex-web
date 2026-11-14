@@ -34,9 +34,9 @@ class TestProfileEmailChange(TestCase):
             SecurityQuestionAnswer.objects.create(user=profile, security_question=question, answer='x')
         self.client.force_login(self.user)
 
-    def _post_profile(self, email, password='pw'):
+    def _post_profile(self, email, password='pw', **extra):
         hashkey = CaptchaStore.generate_key()
-        data = {
+        data = {**extra,
             'current_password': password,
             'username': 'someone',
             'first_name': '',
@@ -147,3 +147,10 @@ class TestProfileEmailChange(TestCase):
         self.assertTrue(layer.user_can_edit(self.user))
         self.assertEqual([m.to for m in mail.outbox], [['new@example.com']])
         self.assertEqual(UserProfile.objects.get(user=self.user).previous_email, '')
+
+    def test_opt_in_to_parse_error_mail(self):
+        # [YOCTO #11196]
+        self._post_profile('old@example.com', notify_parse_errors='on')
+        self.assertTrue(UserProfile.objects.get(user=self.user).notify_parse_errors)
+        self._post_profile('old@example.com')
+        self.assertFalse(UserProfile.objects.get(user=self.user).notify_parse_errors)

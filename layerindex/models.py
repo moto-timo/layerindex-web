@@ -976,6 +976,8 @@ class UserProfile(models.Model):
     # The confirmed email address before a change of address that has not
     # been confirmed yet, to move the user's maintainer records once it is
     previous_email = models.CharField(max_length=255, blank=True)
+    notify_parse_errors = models.BooleanField('Email me when my layers fail to parse', default=False,
+                                              help_text='Sent when a layer branch you maintain starts to fail')
 
     def pending_maintainer_records(self):
         """Maintainer records still under the user's previous address"""

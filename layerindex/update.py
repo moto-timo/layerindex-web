@@ -679,6 +679,9 @@ def main():
         update_purge_days = getattr(settings, 'UPDATE_PURGE_DAYS', 30)
         Update.objects.filter(started__lte=datetime.now()-timedelta(days=update_purge_days)).delete()
 
+        from layerindex.notify import notify_parse_errors
+        notify_parse_errors(update, logger)
+
     sys.exit(0)
 
 

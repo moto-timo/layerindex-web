@@ -211,6 +211,8 @@ class EditNoteForm(StyledModelForm):
 
 
 class EditProfileForm(StyledModelForm):
+    notify_parse_errors = forms.BooleanField(label='Email me when my layers fail to parse', required=False,
+                                             help_text='Sent when a layer branch you maintain starts to fail')
     current_password = forms.CharField(label='Current password', required=False, strip=False,
                                        widget=forms.PasswordInput(attrs={'autocomplete': 'current-password'}),
                                        help_text='Needed to change your email address')
@@ -233,6 +235,7 @@ class EditProfileForm(StyledModelForm):
                 'autocomplete': 'off'
             })
         user = kwargs.get("instance")
+        self.fields['notify_parse_errors'].initial = UserProfile.objects.filter(user=user, notify_parse_errors=True).exists()
         try:
             self.fields['security_question_1'].initial=user.userprofile.securityquestionanswer_set.all()[0].security_question
             self.fields['security_question_2'].initial=user.userprofile.securityquestionanswer_set.all()[1].security_question
