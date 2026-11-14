@@ -147,7 +147,7 @@ def update_layer_view(request, template_name, branch='master', slug=None):
 
     from celery import uuid
 
-    cmd = 'layerindex/update.py --layer %s --branch %s;' % (layeritem.name, branch)
+    cmd = 'layerindex/update.py --layer %s --branch %s --update %%update%%;' % (layeritem.name, branch)
 
     task_id = uuid()
     # Create this here first, because inside the task we don't have all of the required info

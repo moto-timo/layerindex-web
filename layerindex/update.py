@@ -183,6 +183,9 @@ def main():
     parser.add_option("-q", "--quiet",
             help = "Hide all output except error messages",
             action="store_const", const=logging.ERROR, dest="loglevel")
+    parser.add_option("-u", "--update",
+            help = "Record the update in this existing update record instead of creating a new one",
+            type="int", action="store", dest="update_id")
     parser.add_option("", "--keep-temp",
             help = "Preserve temporary directory at the end instead of deleting it",
             action="store_true")
@@ -267,14 +270,23 @@ def main():
     listhandler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
     logger.addHandler(listhandler)
 
-    update = Update()
-    update.started = datetime.now()
+    if options.update_id:
+        update = Update.objects.filter(id=options.update_id).first()
+        if not update:
+            logger.error("Specified update id %s does not exist in database" % options.update_id)
+            sys.exit(1)
+    else:
+        update = Update()
+        update.started = datetime.now()
     if options.fullreload or options.reload:
         update.reload = True
     else:
         update.reload = False
     if not options.dryrun:
-        update.save()
+        if options.update_id:
+            update.save(update_fields=['reload'])
+        else:
+            update.save()
     try:
         lockfn = os.path.join(fetchdir, "layerindex.lock")
         lockfile = utils.lock_file(lockfn, options.timeout, logger)
@@ -611,10 +623,14 @@ def main():
         logger.error(traceback.format_exc().rstrip())
         sys.exit(1)
     finally:
-        update.log = ''.join(listhandler.read())
-        update.finished = datetime.now()
-        if not options.dryrun:
-            update.save()
+        # With --update, whatever runs this command (e.g. the
+        # run_update_command task) records the log and when it finished,
+        # together with the exit status
+        if not options.update_id:
+            update.log = ''.join(listhandler.read())
+            update.finished = datetime.now()
+            if not options.dryrun:
+                update.save()
 
     if not options.dryrun:
         # Purge old update records

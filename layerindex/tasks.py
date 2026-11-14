@@ -40,7 +40,9 @@ def run_update_command(self, branch_name, update_command):
     from layerindex.models import Update
     updateobj = Update.objects.get(task_id=self.request.id)
     updateobj.started = datetime.now()
-    updateobj.save()
+    # Save only the fields set here: the update command may write to the
+    # same record (update.py --update)
+    updateobj.save(update_fields=['started'])
     output = ''
     shell = False
     if isinstance(update_command, str):
@@ -69,5 +71,5 @@ def run_update_command(self, branch_name, update_command):
         updateobj.log = output
         updateobj.finished = datetime.now()
         updateobj.retcode = retcode
-        updateobj.save()
+        updateobj.save(update_fields=['log', 'finished', 'retcode'])
     return {'retcode': retcode, 'output': erroutput}
