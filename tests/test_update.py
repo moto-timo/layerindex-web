@@ -23,7 +23,6 @@
 
 import sys
 import os
-import shutil
 import subprocess
 import pytest
 
@@ -44,25 +43,22 @@ def db_access_without_rollback_and_truncate(request, django_db_setup, django_db_
     request.addfinalizer(django_db_blocker.restore)
 
 @pytest.fixture(scope="module")
-def backup_settings(tmpdir_factory):
-    stmpdir = tmpdir_factory.mktemp('settings')
-    settingsfile = os.path.join(basepath, 'settings.py')
-    backupfile = os.path.join(stmpdir, 'settings.bak')
-    shutil.copy(settingsfile, backupfile)
-    yield settingsfile
-    shutil.copy(backupfile, settingsfile)
+def script_database(django_db_setup):
+    """
+    Point the scripts we launch at the test database.
 
-@pytest.fixture(scope="module")
-def hack_settings(backup_settings):
-    # It's horrific to have to do this, but we need to have additional
-    # scripts connect to the testing database and not whatever's in settings.py
-    # on disk right now, and this appears to be the only real way to do that
+    The scripts run in separate processes and so read the settings afresh,
+    which would connect them to the real database. The settings take the
+    database name from DATABASE_NAME, so set that in the environment the
+    scripts inherit.
+    """
     from django.conf import settings
-    with open(backup_settings, 'a') as f:
-        f.write('\nDATABASES = %s\n' % settings.DATABASES)
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setenv('DATABASE_NAME', settings.DATABASES['default']['NAME'])
+        yield
 
 @pytest.fixture(scope="module")
-def import_layer(hack_settings):
+def import_layer(script_database):
     run_cmd("layerindex/tools/import_layer.py https://git.openembedded.org/openembedded-core -s meta openembedded-core")
     run_cmd("layerindex/tools/import_layer.py https://git.yoctoproject.org/meta-layerindex-test -s meta-layerindex-test")
     run_cmd("layerindex/update.py -l meta-layerindex-test")

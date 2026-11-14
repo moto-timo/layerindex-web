@@ -18,7 +18,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'layersdb',
+        'NAME': os.getenv('DATABASE_NAME', 'layersdb'),
         'USER': os.getenv('DATABASE_USER', 'root'),
         'PASSWORD': os.getenv('DATABASE_PASSWORD', 'testingpw'),
         'HOST': os.getenv('DATABASE_HOST', 'layersdb'),
