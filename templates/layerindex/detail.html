@@ -232,6 +232,7 @@
             {% if updates.count > 0 %}
                 <li><a href="#updates" data-toggle="tab">Updates</a></li>
             {% endif %}
+            <li><a href="#branches" data-toggle="tab">Branches</a></li>
         </ul>
 
         <div class="tab-content">
@@ -401,6 +402,28 @@
                     </table>
                 </div>
             {% endif %}
+            <div class="tab-pane" id="branches">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Branch</th>
+                            <th>Git branch</th>
+                            <th>Last commit</th>
+                            <th>Updates</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lb in layerbranches %}
+                            <tr>
+                                <td>{% if lb.branch.name == url_branch %}<b>{{ lb.branch.name }}</b>{% else %}<a href="{% url 'layer_item' lb.branch.name layeritem.name %}">{{ lb.branch.name }}</a>{% endif %}</td>
+                                <td>{{ lb.get_checkout_branch }}</td>
+                                <td>{% if lb.vcs_last_commit %}{{ lb.vcs_last_commit|date:"Y-m-d" }}{% else %}<span class="text-muted">not indexed</span>{% endif %}</td>
+                                <td>{% with reason=lb.updates_disabled_reason %}{% if reason %}<span class="label label-default label-not-updated">not updated</span> <small class="text-muted">{{ reason }}</small>{% else %}updated{% endif %}{% endwith %}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
  
 

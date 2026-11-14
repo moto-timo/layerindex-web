@@ -493,6 +493,7 @@ class LayerDetailView(DetailView):
             context['appends'] = layerbranch.bbappend_set.order_by('filename')
             context['classes'] = layerbranch.bbclass_set.order_by('name')
             context['updates'] = LayerUpdate.objects.filter(layer=layerbranch.layer, branch=layerbranch.branch).order_by('-started')
+        context['layerbranches'] = LayerBranch.objects.filter(layer=layer, branch__hidden=False, branch__comparison=False).select_related('layer', 'branch').order_by('branch__sort_priority')
         context['url_branch'] = self.kwargs['branch']
         context['this_url_name'] = resolve(self.request.path_info).url_name
         if 'rrs' in settings.INSTALLED_APPS:
