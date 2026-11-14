@@ -466,9 +466,20 @@ def main():
                     # Write these to a file rather than the output, which is
                     # shown on the console and in the update log
                     with open(options.initial, 'w') as f:
-                        for i in ["BBFILE_COLLECTIONS", "LAYERVERSION", "LAYERDEPENDS", "LAYERRECOMMENDS"]:
+                        for i in ["BBFILE_COLLECTIONS", "LAYERVERSION", "LAYERDEPENDS", "LAYERRECOMMENDS",
+                                  "LAYERSERIES_COMPAT", "LAYERSERIES_CORENAMES"]:
                             f.write('%s = "%s"\n' % (i, utils.get_layer_var(layer_config_data, i, logger)))
                     sys.exit(0)
+
+                # On master the core layer is already the next release, which
+                # layers catch up with over time, so only warn (on release
+                # branches update.py doesn't update such layers)
+                if branch.name == 'master':
+                    mismatch = utils.layerseries_mismatch(
+                        utils.get_layer_var(layer_config_data, 'LAYERSERIES_COMPAT', logger),
+                        utils.get_layer_var(layer_config_data, 'LAYERSERIES_CORENAMES', logger))
+                    if mismatch:
+                        logger.warning('Layer %s %s' % (layer.name, mismatch))
 
                 # Set up for recording patch info
                 utils.setup_core_layer_sys_path(settings, branch.name)

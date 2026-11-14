@@ -526,6 +526,16 @@ def main():
                         record_layer_error(layer, branchobj, 'Unable to find BBFILE_COLLECTIONS value for layer %s - is it set in conf/layer.conf?' % layer.name)
                         # Assume (perhaps naively) that it's an error specific to the layer
                         continue
+                    if branchobj.name != 'master':
+                        mismatch = utils.layerseries_mismatch(extract_value('LAYERSERIES_COMPAT', initial_values),
+                                                              extract_value('LAYERSERIES_CORENAMES', initial_values))
+                        if mismatch:
+                            errmsg = 'Layer %s %s' % (layer.name, mismatch)
+                            if newbranch:
+                                record_layer_error(layer, branchobj, errmsg)
+                            else:
+                                disable_layerbranch_updates(layer, branchobj, layerbranch, errmsg)
+                            continue
                     ver = extract_value('LAYERVERSION', initial_values)
                     deps = extract_value('LAYERDEPENDS', initial_values)
                     recs = extract_value('LAYERRECOMMENDS', initial_values)

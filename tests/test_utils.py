@@ -72,6 +72,20 @@ def make_layer(path):
     (path / 'conf' / 'layer.conf').write_text('')
 
 
+@pytest.mark.parametrize('compat, corenames, expected', [
+    # [YOCTO #7792]
+    ('scarthgap', 'scarthgap', None),
+    ('kirkstone scarthgap', 'scarthgap', None),
+    ('wrynose', 'blacksail', 'is only compatible with wrynose, not blacksail (LAYERSERIES_COMPAT)'),
+    ('', 'scarthgap', 'does not set LAYERSERIES_COMPAT'),
+    # Before LAYERSERIES_CORENAMES existed nothing is checked
+    ('', '', None),
+    ('sumo', None, None),
+])
+def test_layerseries_mismatch(compat, corenames, expected):
+    assert utils.layerseries_mismatch(compat, corenames) == expected
+
+
 @pytest.fixture
 def repo_with_nested_layers(tmp_path):
     """A repository whose layer (in subdirectory 'meta-top') contains other

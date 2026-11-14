@@ -57,6 +57,23 @@ def get_layer_var(config_data, var, logger):
         value = config_data.getVar(var, True)
     return value or ''
 
+def layerseries_mismatch(compat, corenames):
+    """
+    If a layer's LAYERSERIES_COMPAT doesn't include any of the release series
+    the core layer is (LAYERSERIES_CORENAMES), return why; otherwise return
+    None. Branches whose core layer has no LAYERSERIES_CORENAMES (before 2.5)
+    aren't checked.
+    """
+    corenames = (corenames or '').split()
+    if not corenames:
+        return None
+    compat = (compat or '').split()
+    if not compat:
+        return 'does not set LAYERSERIES_COMPAT'
+    if set(compat) & set(corenames):
+        return None
+    return 'is only compatible with %s, not %s (LAYERSERIES_COMPAT)' % (' '.join(compat), ' '.join(corenames))
+
 def nested_layer_dirs(layerdir):
     """
     Return the directories below layerdir that contain a conf/layer.conf of

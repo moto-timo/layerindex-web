@@ -116,6 +116,33 @@ def test_move_recipe_out(import_layer, repo, db_access_without_rollback_and_trun
     with pytest.raises(Recipe.DoesNotExist):
         recipe.refresh_from_db()
 
+def test_layerseries_compat(import_layer, repo, db_access_without_rollback_and_truncate):
+    # [YOCTO #7792] the test layer only lists "sumo" in LAYERSERIES_COMPAT
+    from layerindex.models import LayerBranch, LayerUpdate
+    # On master: updated, with a warning in the layer's update log
+    run_cmd("layerindex/update.py -l meta-layerindex-test --nofetch --nocheckout -r")
+    layerupdate = LayerUpdate.objects.filter(layer__name='meta-layerindex-test', branch__name='master').order_by('-id').first()
+    assert 'WARNING: Layer meta-layerindex-test is only compatible with sumo' in layerupdate.log
+    assert LayerBranch.objects.get(layer__name='meta-layerindex-test', branch__name='master').updates_enabled
+    # On a release branch: updates for the layer branch are disabled
+    run_cmd('python3 manage.py shell -c "from layerindex.models import Branch, LayerBranch, LayerItem; '
+            'b = Branch.objects.create(name=\'teststable\', bitbake_branch=\'master\'); '
+            'LayerBranch.objects.create(layer=LayerItem.objects.get(name=\'meta-layerindex-test\'), branch=b, '
+            'vcs_subdir=\'meta-layerindex-test\', actual_branch=\'master\'); '
+            'LayerBranch.objects.create(layer=LayerItem.objects.get(name=\'openembedded-core\'), branch=b, '
+            'vcs_subdir=\'meta\', actual_branch=\'master\')"', cwd=basepath)
+    try:
+        run_cmd("layerindex/update.py -b teststable -l meta-layerindex-test --nofetch --nocheckout")
+        layerbranch = LayerBranch.objects.get(layer__name='meta-layerindex-test', branch__name='teststable')
+        assert not layerbranch.updates_enabled
+        layerupdate = LayerUpdate.objects.filter(layer__name='meta-layerindex-test', branch__name='teststable').order_by('-id').first()
+        assert 'is only compatible with sumo' in layerupdate.log
+        assert 'updates for this layer branch have been disabled' in layerupdate.log
+    finally:
+        run_cmd('python3 manage.py shell -c "from layerindex.models import Branch; '
+                'Branch.objects.filter(name=\'teststable\').delete()"', cwd=basepath)
+
+
 def test_delete_recipe(import_layer, repo, db_access_without_rollback_and_truncate):
     from layerindex.models import LayerBranch, Recipe
     layerbranch = LayerBranch.objects.get(layer__name='meta-layerindex-test')
