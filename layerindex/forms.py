@@ -11,6 +11,7 @@ from collections import OrderedDict
 
 from captcha.fields import CaptchaField
 from django import forms
+from django.db import models
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.validators import EmailValidator, RegexValidator, URLValidator
@@ -34,6 +35,14 @@ class StyledForm(forms.Form):
         super(StyledForm, self).__init__(*args, **kwargs)
         for visible in self.visible_fields():
             visible.field.widget.attrs['class'] = 'form-control'
+
+def https_url_formfield(field, **kwargs):
+    """Model form field callback: treat a URL entered without a scheme as
+    https, as Django 6.0 will by default, rather than http"""
+    if isinstance(field, models.URLField):
+        kwargs.setdefault('assume_scheme', 'https')
+    return field.formfield(**kwargs)
+
 
 class StyledModelForm(forms.ModelForm):
     # Ensure form-control class for Bootstrap 3 is applied to Django-generated widgets
@@ -85,6 +94,7 @@ class EditLayerForm(StyledModelForm):
     class Meta:
         model = LayerItem
         fields = ('name', 'layer_type', 'summary', 'description', 'vcs_url', 'vcs_web_url', 'vcs_web_tree_base_url', 'vcs_web_file_base_url', 'vcs_web_commit_url', 'usage_url', 'mailing_list_url')
+        formfield_callback = https_url_formfield
 
     def __init__(self, user, layerbranch, allow_base_type, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
@@ -343,6 +353,7 @@ class BulkChangeEditForm(StyledModelForm):
     class Meta:
         model = RecipeChange
         fields = ('summary', 'description', 'homepage', 'bugtracker', 'section', 'license')
+        formfield_callback = https_url_formfield
 
 BulkChangeEditFormSet = modelformset_factory(RecipeChange, form=BulkChangeEditForm, extra=0)
 

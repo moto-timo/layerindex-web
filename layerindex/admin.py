@@ -56,7 +56,7 @@ class LayerItemAdmin(CompareVersionAdmin):
     save_as = True
     search_fields = ['name', 'summary', 'vcs_url']
     formfield_overrides = {
-        models.URLField: {'widget': TextInput(attrs={'size':'100'})},
+        models.URLField: {'widget': TextInput(attrs={'size':'100'}), 'assume_scheme': 'https'},
         models.CharField: {'widget': TextInput(attrs={'size':'100'})},
     }
 
