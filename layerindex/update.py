@@ -128,7 +128,7 @@ def print_subdir_error(newbranch, layername, vcs_subdir, branchdesc):
     if newbranch:
         logger.info("Skipping update of layer %s for branch %s - subdirectory %s does not exist on this branch" % (layername, branchdesc, vcs_subdir))
     elif vcs_subdir:
-        return "Subdirectory for layer %s does not exist on branch %s - if this is legitimate, the layer branch record should be deleted" % (layername, branchdesc)
+        return "Subdirectory %s for layer %s does not exist on branch %s" % (vcs_subdir, layername, branchdesc)
     return None
 
 def extract_value(valuename, output):
@@ -303,6 +303,15 @@ def main():
         if not options.dryrun:
             layerupdate.save()
 
+    def disable_layerbranch_updates(layer, branchobj, layerbranch, msg):
+        """The layer has gone from this branch: record why and stop updating
+        it. Unlike deleting the layer branch, this keeps its data and can be
+        undone by enabling updates again."""
+        if not options.dryrun:
+            layerbranch.updates_enabled = False
+            layerbranch.save(update_fields=['updates_enabled'])
+        record_layer_error(layer, branchobj, '%s - updates for this layer branch have been disabled' % msg)
+
     try:
         lockfn = os.path.join(fetchdir, "layerindex.lock")
         lockfile = utils.lock_file(lockfn, options.timeout, logger)
@@ -454,7 +463,7 @@ def main():
                         if not topcommit:
                             errmsg = print_subdir_error(newbranch, layer.name, layerbranch.vcs_subdir, branchdesc)
                             if errmsg:
-                                record_layer_error(layer, branchobj, errmsg)
+                                disable_layerbranch_updates(layer, branchobj, layerbranch, errmsg)
                             if not (newbranch and layerbranch.vcs_subdir):
                                 record_layer_error(layer, branchobj, "Failed to get last revision for layer %s on branch %s" % (layer.name, branchdesc))
                             continue
@@ -474,11 +483,15 @@ def main():
                         if layerbranch.vcs_subdir and not os.path.exists(layerdir):
                             errmsg = print_subdir_error(newbranch, layer.name, layerbranch.vcs_subdir, branchdesc)
                             if errmsg:
-                                record_layer_error(layer, branchobj, errmsg)
+                                disable_layerbranch_updates(layer, branchobj, layerbranch, errmsg)
                             continue
 
                         if not os.path.exists(os.path.join(layerdir, 'conf/layer.conf')):
-                            record_layer_error(layer, branchobj, "conf/layer.conf not found for layer %s (branch %s) - is subdirectory set correctly?" % (layer.name, branch))
+                            errmsg = "conf/layer.conf not found for layer %s (branch %s) - is subdirectory set correctly?" % (layer.name, branch)
+                            if newbranch:
+                                record_layer_error(layer, branchobj, errmsg)
+                            else:
+                                disable_layerbranch_updates(layer, branchobj, layerbranch, errmsg)
                             continue
 
                     fd, initial_fn = tempfile.mkstemp(prefix='layerindex-initial-')

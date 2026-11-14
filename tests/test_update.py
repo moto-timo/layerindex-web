@@ -193,18 +193,19 @@ def test_initial_values_not_in_output(import_layer):
     assert 'BBFILE_COLLECTIONS = ' not in result.stdout
     assert 'Unable to find BBFILE_COLLECTIONS' not in result.stdout
 
-def set_layerbranch(subdir, last_rev):
+def set_layerbranch(subdir, last_rev, updates_enabled=True):
     # In a separate process, so that update.py sees the change: the tests run
     # in a transaction
     run_cmd('python3 manage.py shell -c "from layerindex.models import LayerBranch; '
             'LayerBranch.objects.filter(layer__name=\'meta-layerindex-test\').update('
-            'vcs_subdir=\'%s\', vcs_last_rev=\'%s\')"' % (subdir, last_rev), cwd=basepath)
+            'vcs_subdir=\'%s\', vcs_last_rev=\'%s\', updates_enabled=%s)"' % (subdir, last_rev, updates_enabled), cwd=basepath)
 
 def test_first_parse_error_recorded_against_layer(import_layer, repo, db_access_without_rollback_and_truncate):
     # [YOCTO #13490] an error that stops a layer being parsed is recorded
     # in the layer's update history, not only in the overall update log
     from layerindex.models import LayerBranch, LayerUpdate
     layerbranch = LayerBranch.objects.get(layer__name='meta-layerindex-test')
+    saved = (layerbranch.vcs_subdir, layerbranch.vcs_last_rev)
     set_layerbranch('meta-layerindex-test/recipes-example', '')
     try:
         result = subprocess.run("layerindex/update.py -l meta-layerindex-test --nofetch --nocheckout",
@@ -213,8 +214,12 @@ def test_first_parse_error_recorded_against_layer(import_layer, repo, db_access_
         layerupdate = LayerUpdate.objects.filter(layer=layerbranch.layer).order_by('-id').first()
         assert 'conf/layer.conf not found for layer meta-layerindex-test' in layerupdate.log, result.stdout
         assert layerupdate.errors == 1
+        # [YOCTO #12922] the layer has gone from the branch: stop updating it
+        assert 'updates for this layer branch have been disabled' in layerupdate.log
+        layerbranch.refresh_from_db()
+        assert not layerbranch.updates_enabled
     finally:
-        set_layerbranch(layerbranch.vcs_subdir, layerbranch.vcs_last_rev)
+        set_layerbranch(*saved)
 
 
 
