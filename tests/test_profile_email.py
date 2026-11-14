@@ -65,3 +65,12 @@ class TestProfileEmailChange(TestCase):
         self.user.refresh_from_db()
         self.assertTrue(self.user.is_active)
         self.assertEqual(len(mail.outbox), 0)
+
+    def test_profile_requires_login(self):
+        self.client.logout()
+        for method in ('get', 'post'):
+            response = getattr(self.client, method)(reverse('profile'))
+            self.assertEqual(response.status_code, 302, method)
+            self.assertIn(reverse('login'), response['Location'])
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.email, 'old@example.com')

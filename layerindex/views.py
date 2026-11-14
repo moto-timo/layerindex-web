@@ -19,6 +19,7 @@ from django import forms
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Permission, User
 from django.contrib.messages.views import SuccessMessageMixin
@@ -1004,7 +1005,7 @@ class HistoryListView(ListView):
         return Revision.objects.all().order_by('-date_created')
 
 
-class EditProfileFormView(SuccessMessageMixin, UpdateView):
+class EditProfileFormView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     form_class = EditProfileForm
 
     @method_decorator(never_cache)
