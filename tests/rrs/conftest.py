@@ -7,7 +7,7 @@
 # AI-generated, Claude Opus 5.5
 
 # RRS is optional (ENABLE_RRS=1 in docker/settings.py). Without it these tests
-# are not collected; docker/run-tests.sh runs them in a second pass with it.
+# are not collected; docker/run-tests.sh runs them with it.
 
 import datetime
 import types
@@ -35,6 +35,10 @@ def rrs_plan(db):
     # Created by rrs/migrations/0001_initial.py, which --nomigrations skips
     for name in ('No maintainer', 'All'):
         Maintainer.objects.get_or_create(name=name)
+
+    # rrs/migrations/0004 creates a "Default" plan, and the front page shows
+    # the first plan, so make this the only one
+    MaintenancePlan.objects.all().delete()
 
     branch, _ = Branch.objects.get_or_create(name='master', defaults={'bitbake_branch': 'master'})
     layer = LayerItem.objects.create(name='openembedded-core', status='P', layer_type='A',

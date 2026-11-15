@@ -15,11 +15,17 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        database: [postgresql, mysql]
     steps:
       - uses: actions/checkout@v5
 
-      - name: Build image and run tests
+      - name: Build image and run tests (${{ matrix.database }})
         run: docker/run-tests.sh
+        env:
+          DATABASE_ENGINE: ${{ matrix.database }}
 
   dockersetup:
     runs-on: ubuntu-latest

@@ -1,6 +1,7 @@
 #!/bin/sh
 # layerindex-web - run the test suite in the production image against a
-# throwaway MariaDB. Used by CI; can also be run locally from the repo root.
+# throwaway database: PostgreSQL, or MariaDB with DATABASE_ENGINE=mysql.
+# Used by CI; can also be run locally from the repo root.
 #
 # SPDX-License-Identifier: MIT
 
@@ -17,22 +18,38 @@ trap 'docker rm -f $DB >/dev/null; docker network rm $NET >/dev/null' EXIT
 
 # Alias "layersdb" matches the default DATABASE_HOST in docker/settings.py;
 # testingpw is that file's default password, not a real secret.
-docker run -d --name $DB --network $NET --network-alias layersdb \
-    -e MARIADB_ROOT_PASSWORD=testingpw mariadb:10.11 \
-    --character-set-server=utf8mb4 >/dev/null
-until docker exec $DB healthcheck.sh --connect --innodb_initialized >/dev/null 2>&1; do
-    sleep 1
-done
+DATABASE_ENGINE=${DATABASE_ENGINE:-postgresql}
+case $DATABASE_ENGINE in
+postgresql)
+    docker run -d --name $DB --network $NET --network-alias layersdb \
+        -e POSTGRES_PASSWORD=testingpw postgres:17 >/dev/null
+    # Over TCP: the temporary server that initialises the database only
+    # listens on the Unix socket
+    until docker exec $DB pg_isready -q -h 127.0.0.1 -U postgres >/dev/null 2>&1; do
+        sleep 1
+    done
+    ;;
+mysql)
+    docker run -d --name $DB --network $NET --network-alias layersdb \
+        -e MARIADB_ROOT_PASSWORD=testingpw mariadb:10.11 \
+        --character-set-server=utf8mb4 >/dev/null
+    until docker exec $DB healthcheck.sh --connect --innodb_initialized >/dev/null 2>&1; do
+        sleep 1
+    done
+    ;;
+*)
+    echo "DATABASE_ENGINE must be postgresql or mysql" >&2
+    exit 1
+    ;;
+esac
 
 # Runs as root only to prepare the container: tests/test_update.py rewrites
 # settings.py and bitbake writes its lock file next to it, the update scripts
 # expect bitbake already fetched, and the tests commit to git and call tree.
-# The tests in tests/rrs/ need RRS, so a second pass runs them with
-# ENABLE_RRS=1. --nomigrations builds the tables from the models: the RRS
-# data migrations need the core layer to exist first (see README.rrs.md),
-# which an empty database lacks.
+# ENABLE_RRS=1 so that the tests in tests/rrs/ run and the RRS migrations are
+# checked too.
 docker run --rm --network $NET -u root \
-    -e SECRET_KEY=ci-only \
+    -e SECRET_KEY=ci-only -e DATABASE_ENGINE=$DATABASE_ENGINE -e ENABLE_RRS=1 \
     -e GIT_AUTHOR_NAME=ci -e GIT_AUTHOR_EMAIL=ci@example.com \
     -e GIT_COMMITTER_NAME=ci -e GIT_COMMITTER_EMAIL=ci@example.com \
     -v "$PWD/tests:/src/tests:ro" \
@@ -45,6 +62,4 @@ docker run --rm --network $NET -u root \
             git clone -q https://git.openembedded.org/bitbake /opt/workdir/https___git_openembedded_org_bitbake
             pip3 install -q --user --no-warn-script-location -r /src/requirements-dev.txt
             python3 -m pytest -rfE -p no:cacheprovider tests/
-            export ENABLE_RRS=1
-            python3 manage.py makemigrations --check --dry-run rrs
-            python3 -m pytest -rfE -p no:cacheprovider --nomigrations tests/rrs/"'
+            python3 manage.py makemigrations --check --dry-run rrs"'

@@ -199,12 +199,11 @@ pytest --ignore=tests/test_update.py tests/
 ```
 
 The tests in `tests/rrs/` need the RRS app and are skipped without it.
-`docker/run-tests.sh` runs them in a second pass with `ENABLE_RRS=1`. To run
-them directly, add `'rrs'` to `INSTALLED_APPS` and build the test database from
-the models, since the RRS data migrations need the core layer to exist first:
+`docker/run-tests.sh` runs the whole suite with `ENABLE_RRS=1`. To run them
+directly, add `'rrs'` to `INSTALLED_APPS`:
 
 ```sh
-pytest --nomigrations tests/rrs/
+pytest tests/rrs/
 ```
 
 `tests/test_dockersetup.py` tests the files `dockersetup.py` writes. It needs only
