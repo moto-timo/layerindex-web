@@ -28,6 +28,7 @@ mysqlclient==2.3.1
 packaging_legacy==23.0.post0
 Pillow==13.0.0
 prompt-toolkit==3.0.53
+psycopg[binary]==3.3.9
 pyasyncore==1.0.5
 python-dateutil==2.9.0.post0
 pytz==2026.6

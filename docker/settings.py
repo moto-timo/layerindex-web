@@ -7,6 +7,8 @@
 
 import os
 
+from django.core.exceptions import ImproperlyConfigured
+
 DEBUG = os.getenv('DEBUG', '0').lower() in ('1', 'true', 'yes')
 
 ADMINS = (
@@ -15,14 +17,18 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+# DATABASE_ENGINE is "mysql" (MariaDB, the default) or "postgresql"
+DATABASE_ENGINE = os.getenv('DATABASE_ENGINE', 'mysql')
+if DATABASE_ENGINE not in ('postgresql', 'mysql'):
+    raise ImproperlyConfigured(f'DATABASE_ENGINE must be "postgresql" or "mysql", not "{DATABASE_ENGINE}"')
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.' + DATABASE_ENGINE,
         'NAME': os.getenv('DATABASE_NAME', 'layersdb'),
-        'USER': os.getenv('DATABASE_USER', 'root'),
+        'USER': os.getenv('DATABASE_USER', 'postgres' if DATABASE_ENGINE == 'postgresql' else 'root'),
         'PASSWORD': os.getenv('DATABASE_PASSWORD', 'testingpw'),
         'HOST': os.getenv('DATABASE_HOST', 'layersdb'),
-        'PORT': os.getenv('DATABASE_PORT', '3306'),
+        'PORT': os.getenv('DATABASE_PORT', '5432' if DATABASE_ENGINE == 'postgresql' else '3306'),
     }
 }
 
