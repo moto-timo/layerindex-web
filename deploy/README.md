@@ -10,7 +10,7 @@ Investigation + working configuration for two phases:
    separately-hosted Authentik instance, without tearing out the current
    local-account machinery.
 
-Researched August 2026, Caddy pin re-verified October 2026. Versions pinned here: Caddy **2.11.7**,
+Researched August 2026, Caddy pin re-verified October 2026. Versions pinned here: Caddy **2.11.9**,
 mozilla-django-oidc **5.0.2**, Authentik **≥ 2026.5** required for logout
 redirect, Django **5.2**.
 
@@ -21,7 +21,7 @@ deploy/
 ├── README.md                                  ← this file
 └── hetzner/
     ├── docker-compose.yml                     production stack (Caddy, no nginx)
-    ├── Caddyfile                              validated against caddy 2.11.7
+    ├── Caddyfile                              validated against caddy 2.11.9
     ├── Dockerfile.caddy                       optional: xcaddy + rate limiting
     ├── env.example                            copy to repo-root .env
     ├── bootstrap-host.sh                      fresh-VM prep
@@ -256,7 +256,7 @@ These are worth knowing about regardless of Caddy:
 ## What you lose, and what to do about it
 
 The nginx config had `limit_req zone=login_ip rate=30r/m` on `/accounts/login`.
-**Caddy 2.11.7 has no built-in rate limiter.** `mholt/caddy-ratelimit` exists and
+**Caddy 2.11.9 has no built-in rate limiter.** `mholt/caddy-ratelimit` exists and
 is written by Caddy's author, but it is explicitly not an official Caddy
 repository, is pre-1.0, and requires an `xcaddy` custom build.
 
@@ -265,7 +265,7 @@ repository, is pre-1.0, and requires an `xcaddy` custom build.
 layer more precisely than an IP-bucket ever did. The recommendation is to skip
 the custom Caddy build. `deploy/hetzner/Dockerfile.caddy` and a commented
 `rate_limit` block in the Caddyfile are there if you disagree. The module
-compiles against 2.11.7 and the uncommented block validates, but re-check after
+compiles against 2.11.9 and the uncommented block validates, but re-check after
 any Caddy bump.
 
 ---
@@ -485,9 +485,9 @@ which is fine).
 
 ## Verification performed
 
-- `caddy validate --adapter caddyfile` against the real **caddy 2.11.7** binary:
+- `caddy validate --adapter caddyfile` against the real **caddy 2.11.9** binary:
   *Valid configuration*; file is `caddy fmt`-clean.
-- `Dockerfile.caddy` builds against **caddy 2.11.7**, `http.handlers.rate_limit`
+- `Dockerfile.caddy` builds against **caddy 2.11.9**, `http.handlers.rate_limit`
   is listed, and the Caddyfile validates with the `rate_limit` block enabled.
 - `docker compose config` against **Compose v5.4.0**: renders, anchors resolve,
   build context resolves to the repo root.
