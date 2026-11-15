@@ -70,6 +70,16 @@ class PythonEnvironment(models.Model):
         return self.name
 
 
+def branch_sort_order(prefix=''):
+    """
+    Ordering by branch sort priority, for order_by(): prefix is the path to
+    the branch, e.g. 'layerbranch__branch__'. Branches without a priority
+    (master) come first, as MariaDB sorts NULL; PostgreSQL sorts it last
+    unless told.
+    """
+    return models.F(prefix + 'sort_priority').asc(nulls_first=True)
+
+
 class Branch(models.Model):
     name = models.CharField('Branch name', max_length=50)
     bitbake_branch = models.CharField(max_length=50)
@@ -84,7 +94,7 @@ class Branch(models.Model):
 
     class Meta:
         verbose_name_plural = "Branches"
-        ordering = ['sort_priority']
+        ordering = [branch_sort_order()]
 
     def __str__(self):
         if self.comparison and self.short_description:

@@ -20,7 +20,7 @@ from django.db import connection
 from django.db.models import Count, Q
 from django.contrib import messages
 
-from layerindex.models import Recipe, StaticBuildDep, Patch
+from layerindex.models import Recipe, StaticBuildDep, Patch, branch_sort_order
 from rrs.models import Release, Milestone, Maintainer, RecipeMaintainerHistory, \
         RecipeMaintainer, RecipeUpstreamHistory, RecipeUpstream, \
         RecipeDistro, RecipeUpgrade, MaintenancePlan, RecipeSymbol
@@ -917,7 +917,7 @@ class RecipeDetailView(DetailView):
             context['recipe_depends'] = []
             context['recipe_distros'] = []
 
-        context['otherbranch_recipes'] = Recipe.objects.filter(layerbranch__layer=recipesymbol.layerbranch.layer, layerbranch__branch__comparison=False, pn=recipesymbol.pn).select_related('layerbranch__branch').order_by('layerbranch__branch__sort_priority')
+        context['otherbranch_recipes'] = Recipe.objects.filter(layerbranch__layer=recipesymbol.layerbranch.layer, layerbranch__branch__comparison=False, pn=recipesymbol.pn).select_related('layerbranch__branch').order_by(branch_sort_order('layerbranch__branch__'))
 
         return context
 

@@ -6,7 +6,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-from layerindex.models import Branch, LayerItem, SiteNotice
+from layerindex.models import Branch, LayerItem, SiteNotice, branch_sort_order
 from django.contrib.sites.models import Site
 from django.db.models import Q
 from datetime import datetime
@@ -23,7 +23,7 @@ def layerindex_context(request):
     else:
         login_return_url = request.path
     return {
-        'all_branches': Branch.objects.exclude(comparison=True).exclude(hidden=True).order_by('sort_priority'),
+        'all_branches': Branch.objects.exclude(comparison=True).exclude(hidden=True).order_by(branch_sort_order()),
         'unpublished_count': LayerItem.objects.filter(status='N').count(),
         'site_name': site_name,
         'rrs_enabled': 'rrs' in settings.INSTALLED_APPS,

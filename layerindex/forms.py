@@ -26,7 +26,7 @@ from layerindex.models import (Branch, ClassicRecipe,
                                LayerBranch, LayerItem, LayerMaintainer,
                                LayerNote, RecipeChange, RecipeChangeset,
                                SecurityQuestion, UserProfile, PatchDisposition,
-                               YPCompatibleVersion)
+                               YPCompatibleVersion, branch_sort_order)
 
 
 class StyledForm(forms.Form):
@@ -408,7 +408,7 @@ class BranchComparisonForm(StyledForm):
 
     def __init__(self, *args, request=None, **kwargs):
         super(BranchComparisonForm, self).__init__(*args, **kwargs)
-        qs = Branch.objects.filter(comparison=False, hidden=False).order_by('sort_priority', 'name')
+        qs = Branch.objects.filter(comparison=False, hidden=False).order_by(branch_sort_order(), 'name')
         self.fields['from_branch'].queryset = qs
         self.fields['to_branch'].queryset = qs
         self.request = request
@@ -428,6 +428,6 @@ class RecipeDependenciesForm(StyledForm):
 
     def __init__(self, *args, request=None, **kwargs):
         super(RecipeDependenciesForm, self).__init__(*args, **kwargs)
-        qs = Branch.objects.filter(comparison=False, hidden=False).order_by('sort_priority', 'name')
+        qs = Branch.objects.filter(comparison=False, hidden=False).order_by(branch_sort_order(), 'name')
         self.fields['branch'].queryset = qs
         self.request = request

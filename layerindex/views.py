@@ -62,7 +62,8 @@ from layerindex.models import (BBAppend, BBClass, BBClassGlobal, BBClassRecipe,
                                LayerNote, LayerUpdate, Machine, Patch, Recipe,
                                RecipeChange, RecipeChangeset, Source, StaticBuildDep,
                                Update, SecurityQuestion, SecurityQuestionAnswer,
-                               UserProfile, PatchDisposition, ExtendedProvide)
+                               UserProfile, PatchDisposition, ExtendedProvide,
+                               branch_sort_order)
 
 
 from . import tasks, utils
@@ -498,7 +499,7 @@ class LayerDetailView(DetailView):
             context['appends'] = layerbranch.bbappend_set.order_by('filename')
             context['classes'] = layerbranch.bbclass_set.order_by('name')
             context['updates'] = LayerUpdate.objects.filter(layer=layerbranch.layer, branch=layerbranch.branch).order_by('-started')
-        context['layerbranches'] = LayerBranch.objects.filter(layer=layer, branch__hidden=False, branch__comparison=False).select_related('layer', 'branch').order_by('branch__sort_priority')
+        context['layerbranches'] = LayerBranch.objects.filter(layer=layer, branch__hidden=False, branch__comparison=False).select_related('layer', 'branch').order_by(branch_sort_order('branch__'))
         context['url_branch'] = self.kwargs['branch']
         context['this_url_name'] = resolve(self.request.path_info).url_name
         if 'rrs' in settings.INSTALLED_APPS:
@@ -1197,7 +1198,7 @@ class RecipeDetailView(DetailView):
                 if dep.path.endswith('.inc'):
                     extrafiles.append(dep)
             context['extrafiles'] = extrafiles
-            context['otherbranch_recipes'] = Recipe.objects.filter(layerbranch__layer=recipe.layerbranch.layer, layerbranch__branch__comparison=False, pn=recipe.pn).order_by('layerbranch__branch__sort_priority')
+            context['otherbranch_recipes'] = Recipe.objects.filter(layerbranch__layer=recipe.layerbranch.layer, layerbranch__branch__comparison=False, pn=recipe.pn).order_by(branch_sort_order('layerbranch__branch__'))
         return context
 
 
@@ -1643,7 +1644,7 @@ class StatsView(TemplateView):
         # at production data volumes. Simple per-branch COUNT queries are far cheaper.
         # See: https://bugzilla.yoctoproject.org/show_bug.cgi?id=15391
         perbranch = []
-        for branch in Branch.objects.filter(hidden=False).order_by('sort_priority'):
+        for branch in Branch.objects.filter(hidden=False).order_by(branch_sort_order()):
             perbranch.append({
                 'name': branch.name,
                 'updates_enabled': branch.updates_enabled,
