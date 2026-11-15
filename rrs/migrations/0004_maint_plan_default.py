@@ -14,9 +14,9 @@ def populate_plan(apps, schema_editor):
     if Release.objects.all().exists():
         if not settings.CORE_LAYER_NAME:
             raise Exception('Please set CORE_LAYER_NAME in settings.py')
+        # In a new database the core layer isn't there yet (0001 adds the
+        # releases); layer branches can be added to the plan later
         core_layerbranch = LayerBranch.objects.filter(layer__name=settings.CORE_LAYER_NAME).first()
-        if not core_layerbranch:
-            raise Exception('Unable to find core layer "%s" specified in CORE_LAYER_NAME in settings.py - please set up the layerindex application first' % settings.CORE_LAYER_NAME)
         maintplan = MaintenancePlan()
         maintplan.name = 'Default'
         maintplan.description = 'Created upon database upgrade'
@@ -24,8 +24,9 @@ def populate_plan(apps, schema_editor):
         for row in Release.objects.all():
             row.plan = maintplan
             row.save()
-        maintplanlayerbranch = MaintenancePlanLayerBranch(plan=maintplan, layerbranch=core_layerbranch)
-        maintplanlayerbranch.save();
+        if core_layerbranch:
+            maintplanlayerbranch = MaintenancePlanLayerBranch(plan=maintplan, layerbranch=core_layerbranch)
+            maintplanlayerbranch.save();
 
 
 class Migration(migrations.Migration):

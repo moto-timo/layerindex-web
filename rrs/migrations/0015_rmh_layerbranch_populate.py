@@ -8,6 +8,9 @@ from django.conf import settings
 def populate_rmh_layerbranch(apps, schema_editor):
     RecipeMaintainerHistory = apps.get_model('rrs', 'RecipeMaintainerHistory')
     LayerBranch = apps.get_model('layerindex', 'LayerBranch')
+    if not RecipeMaintainerHistory.objects.exists():
+        # Nothing to populate, e.g. a new database
+        return
     if not settings.CORE_LAYER_NAME:
         raise Exception('Please set CORE_LAYER_NAME in settings.py')
     core_layerbranch = LayerBranch.objects.filter(layer__name=settings.CORE_LAYER_NAME).first()
