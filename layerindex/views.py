@@ -272,7 +272,9 @@ def edit_layer_view(request, template_name, branch='master', slug=None):
                     return HttpResponseRedirect(reverse('submit_layer_thanks'))
 
             # Email any new maintainers (that aren't us)
-            new_maintainers = layerbranch.layermaintainer_set.exclude(email__in=old_maintainers + [request.user.email])
+            # Compared without case, as MariaDB does by default (PostgreSQL doesn't)
+            new_maintainers = layerbranch.layermaintainer_set.annotate(email_lower=Lower('email')).exclude(
+                email_lower__in=[e.lower() for e in old_maintainers + [request.user.email]])
             if new_maintainers:
                 for maintainer in new_maintainers:
                     layer_url = request.build_absolute_uri(reverse('layer_item', args=(layerbranch.branch.name, layeritem.name,)))
@@ -563,7 +565,7 @@ class RecipeSearchView(ListView):
         filtered = False
         if query_string.strip():
             # First search by exact name
-            qs0 = init_qs.filter(pn=query_string).order_by(*order_by)
+            qs0 = init_qs.filter(pn__iexact=query_string).order_by(*order_by)
             if preferred:
                 qs0 = recipes_preferred_count(qs0)
 
@@ -640,7 +642,7 @@ class RecipeSearchView(ListView):
 layer name is expected to follow the \"layer:\" prefix without any spaces.')
                 else:
                     query_layer = LayerItem.objects.filter(
-                        name=query_layername)
+                        name__iexact=query_layername)
                     if query_layername == 'oe-core' and not query_layer:
                         query_layer = LayerItem.objects.filter(name='openembedded-core')
                     if query_layer:
@@ -652,7 +654,7 @@ layer name is expected to follow the \"layer:\" prefix without any spaces.')
                                             % query_layername)
             elif item.startswith('pn:'):
                 query_pn = item.split(':')[1].strip().lower()
-                init_qs = init_qs.filter(pn=query_pn)
+                init_qs = init_qs.filter(pn__iexact=query_pn)
             else:
                 if ' ' in item:
                     item = '"%s"' % item
