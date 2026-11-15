@@ -2,7 +2,7 @@
 #
 # Only needed if you want the old nginx `limit_req zone=login_ip` behaviour back
 # at the edge. django-axes already handles login brute force at the application
-# layer, so the stock caddy:2.11.7-alpine image is the default in
+# layer, so the stock caddy:2.11.9-alpine image is the default in
 # docker-compose.yml and this file is opt-in.
 #
 # caddy-ratelimit is authored by Caddy's creator but is explicitly NOT an
@@ -13,9 +13,9 @@
 #
 # SPDX-License-Identifier: MIT
 
-FROM caddy:2.11.7-builder-alpine AS builder
+FROM caddy:2.11.9-builder-alpine AS builder
 RUN xcaddy build \
     --with github.com/mholt/caddy-ratelimit
 
-FROM caddy:2.11.7-alpine
+FROM caddy:2.11.9-alpine
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy

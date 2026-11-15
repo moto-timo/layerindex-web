@@ -136,7 +136,7 @@ services:
     command: /opt/updatelayers.sh
 
   layerscaddy:
-    image: caddy:2.11.7-alpine
+    image: caddy:2.11.9-alpine
     # For edge rate limiting, comment out `image:` above and use instead:
     # build:
     #   context: .
