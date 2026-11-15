@@ -109,15 +109,15 @@ class Raw():
         """ Get Maintainer based on Recipes and Recipe Upstream History """
         stats = []
 
-        if date_id:
-            qry = """SELECT rema.recipesymbol_id, ma.name
+        if date_id and recipes_id:
+            qry = f"""SELECT rema.recipesymbol_id, ma.name
                     FROM rrs_recipemaintainer AS rema
                     INNER JOIN rrs_maintainer AS ma
                     ON rema.maintainer_id = ma.id
                     WHERE rema.history_id = %s
-                    AND rema.recipesymbol_id IN %s;"""
+                    AND rema.recipesymbol_id IN ({Raw.placeholders(recipes_id)});"""
             cur = connection.cursor()
-            cur.execute(qry, [str(date_id), tuple(recipes_id)])
+            cur.execute(qry, [date_id] + list(recipes_id))
             stats = Raw.dictfetchall(cur)
 
         return stats
@@ -138,12 +138,12 @@ class Raw():
                 recipes.append(re["id"])
 
         if date_id and recipes:
-            qry = """SELECT id, status, no_update_reason
+            qry = f"""SELECT id, status, no_update_reason
                     FROM rrs_recipeupstream
                     WHERE history_id = %s
-                    AND recipesymbol_id IN %s;"""
+                    AND recipesymbol_id IN ({Raw.placeholders(recipes)});"""
             cur = connection.cursor()
-            cur.execute(qry, [str(date_id.id), tuple(recipes)])
+            cur.execute(qry, [date_id.id] + recipes)
 
             for re in Raw.dictfetchall(cur):
                 if re["status"] == "Y":
@@ -163,13 +163,13 @@ class Raw():
         """ Get Recipe Upstream based on Recipes and Recipe Upstream History """
         stats = []
 
-        if date_id:
-            qry = """SELECT recipesymbol_id, status, no_update_reason, version
+        if date_id and recipes_id:
+            qry = f"""SELECT recipesymbol_id, status, no_update_reason, version
                     FROM rrs_recipeupstream
                     WHERE history_id = %s
-                    AND recipesymbol_id IN %s;"""
+                    AND recipesymbol_id IN ({Raw.placeholders(recipes_id)});"""
             cur = connection.cursor()
-            cur.execute(qry, [str(date_id), tuple(recipes_id)])
+            cur.execute(qry, [date_id] + list(recipes_id))
             stats = Raw.dictfetchall(cur)
 
         return stats
@@ -223,13 +223,15 @@ class Raw():
     @staticmethod
     def get_reupg_by_dates_and_recipes(start_date, end_date, recipes_id):
         """  Get Recipe Upgrade for the milestone based on Recipes """
+        if not recipes_id:
+            return []
         cur = connection.cursor()
-        qry = """SELECT DISTINCT recipesymbol_id
+        qry = f"""SELECT DISTINCT recipesymbol_id
                 FROM rrs_recipeupgrade
                 WHERE commit_date >= %s
                 AND commit_date <= %s
-                AND recipesymbol_id IN %s;"""
-        cur.execute(qry, [start_date, end_date, tuple(recipes_id)])
+                AND recipesymbol_id IN ({Raw.placeholders(recipes_id)});"""
+        cur.execute(qry, [start_date, end_date] + list(recipes_id))
         return Raw.dictfetchall(cur)
 
     @staticmethod
@@ -257,6 +259,14 @@ class Raw():
             ret = cur.fetchone()
 
         return ret
+
+    @staticmethod
+    def placeholders(values):
+        """
+        The parameter placeholders for "IN (...)" with these values: a tuple
+        parameter works with MySQLdb but not with psycopg 3.
+        """
+        return ', '.join(['%s'] * len(values))
 
     @staticmethod
     def dictfetchall(cursor):
