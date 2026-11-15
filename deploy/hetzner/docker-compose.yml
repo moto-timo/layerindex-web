@@ -99,6 +99,9 @@ services:
 
   layersapp:
     <<: *app-common
+    # "docker compose run" of update.py and the RRS tools: reap the
+    # bitbake servers that recipe parsing leaves behind
+    init: true
     build:
       context: ../..
       dockerfile: Dockerfile
@@ -125,6 +128,9 @@ services:
     <<: *app-common
     profiles: [tools]
     restart: "no"
+    # The update scripts are process 1 here: reap the bitbake servers that
+    # recipe parsing leaves behind (bug 16515)
+    init: true
     depends_on:
       layersdb:
         condition: service_healthy
