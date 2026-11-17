@@ -55,6 +55,7 @@ def get_args():
     parser.add_argument('-s', '--https-proxy', type=str, help='https proxy in the format http://<myproxy:port>', default=default_https_proxy, required=False)
     parser.add_argument('-S', '--socks-proxy', type=str, help='socks proxy in the format socks://myproxy:port>', default=default_socks_proxy, required=False)
     parser.add_argument('-N', '--no-proxy', type=str, help='Comma-separated list of hosts that should not be connected to via the proxy', default=default_no_proxy, required=False)
+    parser.add_argument('--database', choices=DB_CLIENTS, default='mariadb', help='Database server to set up (default: mariadb). An update keeps the one already set up.')
     parser.add_argument('-d', '--databasefile', type=str, help='Location of your database file to import. Must be a .sql, .sql.gz or .sql.zst file.', required=False)
     parser.add_argument('-e', '--email-host', type=str, help='Email host for sending messages (optionally with :port if not 25)', required=False)
     parser.add_argument('--email-user', type=str, help='User name to use when connecting to email host', required=False)
@@ -76,7 +77,7 @@ def get_args():
     args = parser.parse_args()
 
     if args.update:
-        if args.http_proxy != default_http_proxy or args.https_proxy != default_https_proxy or args.no_proxy != default_no_proxy or args.databasefile or args.no_https or args.cert or args.cert_key or args.letsencrypt:
+        if args.http_proxy != default_http_proxy or args.https_proxy != default_https_proxy or args.no_proxy != default_no_proxy or args.databasefile or args.database != 'mariadb' or args.no_https or args.cert or args.cert_key or args.letsencrypt:
             raise argparse.ArgumentTypeError("The -u/--update option will not update configuration or database content, and thus none of the other configuration options can be used in conjunction with it")
         if args.reinstall:
             raise argparse.ArgumentTypeError("The -u/--update and -r/--reinstall options are mutually exclusive")
@@ -256,7 +257,7 @@ def yaml_comment(line):
 
 # Add hostname, port mapping and certificates in docker-compose.yml, and use
 # the .env.local.* files written by write_service_env_files()
-def edit_dockercompose(hostname, portmapping, letsencrypt, app_dir='/opt'):
+def edit_dockercompose(hostname, portmapping, letsencrypt, app_dir='/opt', database='mariadb'):
 
     in_layersapp_build = False
 
@@ -275,8 +276,19 @@ def edit_dockercompose(hostname, portmapping, letsencrypt, app_dir='/opt'):
     in_layersweb_ports_format = None
     in_layerscertbot_format = None
     newlines = []
+    in_layersdb = False
     lines = filedata.splitlines()
     for line in lines:
+        if re.match(r'^  \S.*:$', line):
+            in_layersdb = line.strip() == 'layersdb:'
+        if in_layersdb and database == 'postgresql':
+            # The image's defaults suit PostgreSQL; the command line is
+            # MariaDB's options
+            if line.strip().startswith('image: mariadb'):
+                newlines.append(line[:line.find('image:')] + 'image: postgres:17\n')
+                continue
+            if line.strip().startswith('command:'):
+                continue
         if in_layersweb_ports:
             format = line[0:line.find("-")].replace("#", "")
             if in_layersweb_ports_format:
@@ -559,9 +571,10 @@ def setup_https(hostname, http_port, https_port, letsencrypt, letsencrypt_produc
             sys.exit(1)
 
 
-def edit_options_file(project_name):
+def edit_options_file(project_name, database='mariadb'):
     with open('.dockersetup-options', 'w') as f:
         f.write('project_name=%s\n' % project_name)
+        f.write('database=%s\n' % database)
 
 
 def write_env_file(app_dir):
@@ -585,8 +598,9 @@ def write_env_file(app_dir):
 # Write the generated secrets and email settings to .env.local.<service>,
 # starting from the tracked .env.dev.<service> defaults. These files hold
 # secrets and are ignored by git.
-def write_service_env_files(dbpassword, dbapassword, secretkey, rmqpassword, email_host, email_port, email_user, email_password, email_ssl, email_tls, site_origin=None):
+def write_service_env_files(dbpassword, dbapassword, secretkey, rmqpassword, email_host, email_port, email_user, email_password, email_ssl, email_tls, site_origin=None, database='mariadb'):
     values = {
+        'POSTGRES_PASSWORD': dbapassword,
         'SECRET_KEY': secretkey,
         'DATABASE_USER': 'layers',
         'DATABASE_PASSWORD': dbpassword,
@@ -607,11 +621,16 @@ def write_service_env_files(dbpassword, dbapassword, secretkey, rmqpassword, ema
         for line in readfile('.env.dev.' + service).splitlines():
             if line.startswith('# '):
                 continue
+            if database == 'postgresql' and service == 'db':
+                # The .env.dev.db defaults are for the MariaDB image
+                line = line.replace('MYSQL_DATABASE=', 'POSTGRES_DB=').replace('MYSQL_ROOT_PASSWORD=', 'POSTGRES_PASSWORD=')
             key = line.lstrip('#').split('=', 1)[0]
             if values.get(key):
                 newlines.append('%s=%s\n' % (key, values[key]))
             else:
                 newlines.append(line + '\n')
+        if database == 'postgresql' and service in ('app', 'celery'):
+            newlines.append('DATABASE_ENGINE=postgresql\n')
         filename = '.env.local.' + service
         with open(os.open(filename, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), 'w') as f:
             f.write(''.join(newlines))
@@ -665,6 +684,44 @@ def compose_sh():
     return ' '.join(compose_command())
 
 
+# For each database server: its administrative user, the environment variable
+# its client takes the password from, and the client command that runs SQL
+# from standard input in the layersdb container (AI-generated, Claude Opus 5.5)
+DB_CLIENTS = {
+    'mariadb': ('root', 'MYSQL_PWD', 'mariadb -uroot layersdb'),
+    'postgresql': ('postgres', 'PGPASSWORD', 'psql -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -U postgres -d layersdb'),
+}
+
+
+def db_client(database, dbapassword):
+    """Return the shell command that runs SQL from standard input as the
+    database's administrative user, and the environment to run it in. The
+    password goes through the environment rather than the command line, so
+    it isn't visible through ps or /proc/<pid>/cmdline."""
+    _user, password_var, client = DB_CLIENTS[database]
+    env = os.environ.copy()
+    env[password_var] = dbapassword
+    return f'{compose_sh()} exec -T -e {password_var} layersdb {client}', env
+
+
+def create_app_user_sql(database, dbpassword):
+    """SQL creating the "layers" user that the application connects as"""
+    if database == 'postgresql':
+        # The migrations run as postgres, and a PostgreSQL GRANT covers only
+        # the tables that exist when it runs, so also grant on the tables later
+        # migrations create (from Michael Halstead's PostgreSQL branch)
+        return ("DROP USER IF EXISTS layers;\n"
+                f"CREATE USER layers WITH PASSWORD '{dbpassword}';\n"
+                "GRANT SELECT, UPDATE, INSERT, DELETE ON ALL TABLES IN SCHEMA public TO layers;\n"
+                "GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO layers;\n"
+                "ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT, UPDATE, INSERT, DELETE ON TABLES TO layers;\n"
+                "ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO layers;\n")
+    return ("DROP USER IF EXISTS layers;"
+            f"CREATE USER layers IDENTIFIED BY '{dbpassword}';\n"
+            "GRANT SELECT, UPDATE, INSERT, DELETE ON layersdb.* TO layers;\n"
+            "FLUSH PRIVILEGES;\n")
+
+
 # Read the database root password of an existing installation, from
 # .env.local.db or, for installations made before it existed, from
 # docker-compose.yml. Returns the development default if neither has one.
@@ -673,7 +730,7 @@ def read_db_root_password():
         if os.path.exists(filename):
             with open(filename, 'r') as f:
                 for line in f:
-                    if 'MYSQL_ROOT_PASSWORD=' in line and not line.lstrip().startswith('#'):
+                    if ('MYSQL_ROOT_PASSWORD=' in line or 'POSTGRES_PASSWORD=' in line) and not line.lstrip().startswith('#'):
                         return line.split('=')[1].rstrip().rstrip('"')
     return 'testingpw'
 
@@ -694,6 +751,9 @@ def main():
                 for line in f:
                     if line.startswith('project_name='):
                         args.project_name = line.split('=', 1)[1].rstrip()
+                    elif line.startswith('database='):
+                        # Installations made before --database use MariaDB
+                        args.database = line.split('=', 1)[1].rstrip()
         except FileNotFoundError:
             pass
     else:
@@ -829,14 +889,14 @@ provide information as needed.
         write_env_file(args.app_dir)
 
         protocol, host = site_protocol_host(args.hostname, http_port, https_port, args.no_https)
-        write_service_env_files(dbpassword, dbapassword, secretkey, rmqpassword, email_host, email_port, args.email_user, args.email_password, args.email_ssl, args.email_tls, '%s://%s' % (protocol, host))
-        edit_dockercompose(args.hostname, args.portmapping, args.letsencrypt, args.app_dir)
+        write_service_env_files(dbpassword, dbapassword, secretkey, rmqpassword, email_host, email_port, args.email_user, args.email_password, args.email_ssl, args.email_tls, '%s://%s' % (protocol, host), args.database)
+        edit_dockercompose(args.hostname, args.portmapping, args.letsencrypt, args.app_dir, args.database)
 
         edit_dockerfile_web(args.hostname, args.no_https)
 
         edit_settings_py(emailaddr, args.app_dir)
 
-        edit_options_file(args.project_name)
+        edit_options_file(args.project_name, args.database)
 
         if not args.no_https:
             setup_https(args.hostname, http_port, https_port, args.letsencrypt, args.letsencrypt_production, args.cert, args.cert_key, emailaddr, args.app_dir)
@@ -874,12 +934,9 @@ provide information as needed.
     time.sleep(8)
     while True:
         time.sleep(2)
-        # Pass credentials through environment for slightly better security
-        # (avoids password being visible through ps or /proc/<pid>/cmdline)
-        env = os.environ.copy()
-        env['MYSQL_PWD'] = dbapassword
+        client, env = db_client(args.database, dbapassword)
         # Dummy command, we just want to establish that the db can be connected to
-        return_code = subprocess.call("echo | " + compose_sh() + " exec -T -e MYSQL_PWD layersdb mariadb -uroot layersdb", shell=True, env=env)
+        return_code = subprocess.call("echo | " + client, shell=True, env=env)
         if return_code == 0:
             break
         else:
@@ -899,9 +956,8 @@ provide information as needed.
                     catcmd = 'zcat'
             else:
                 catcmd = 'cat'
-            env = os.environ.copy()
-            env['MYSQL_PWD'] = dbapassword
-            return_code = subprocess.call("%s %s | %s exec -T -e MYSQL_PWD layersdb mariadb -uroot layersdb" % (catcmd, quote(args.databasefile), compose_sh()), shell=True, env=env)
+            client, env = db_client(args.database, dbapassword)
+            return_code = subprocess.call(f"{catcmd} {quote(args.databasefile)} | {client}", shell=True, env=env)
             if return_code != 0:
                 print("Database import failed")
                 sys.exit(1)
@@ -909,7 +965,7 @@ provide information as needed.
     if not args.no_migrate:
         # Apply any pending layerindex migrations / initialize the database.
         env = os.environ.copy()
-        env['DATABASE_USER'] = 'root'
+        env['DATABASE_USER'] = DB_CLIENTS[args.database][0]
         env['DATABASE_PASSWORD'] = dbapassword
         return_code = subprocess.call(compose('run', '--rm', '-e', 'DATABASE_USER', '-e', 'DATABASE_PASSWORD', 'layersapp', args.app_dir + '/migrate.sh'), shell=False, env=env)
         if return_code != 0:
@@ -920,16 +976,10 @@ provide information as needed.
         # Create normal database user for app to use
         with tempfile.NamedTemporaryFile('w', dir=os.getcwd(), delete=False) as tf:
             sqlscriptfile = tf.name
-            tf.write("DROP USER IF EXISTS layers;")
-            tf.write("CREATE USER layers IDENTIFIED BY '%s';\n" % dbpassword)
-            tf.write("GRANT SELECT, UPDATE, INSERT, DELETE ON layersdb.* TO layers;\n")
-            tf.write("FLUSH PRIVILEGES;\n")
+            tf.write(create_app_user_sql(args.database, dbpassword))
         try:
-            # Pass credentials through environment for slightly better security
-            # (avoids password being visible through ps or /proc/<pid>/cmdline)
-            env = os.environ.copy()
-            env['MYSQL_PWD'] = dbapassword
-            return_code = subprocess.call(compose_sh() + " exec -T -e MYSQL_PWD layersdb mariadb -uroot layersdb < " + quote(sqlscriptfile), shell=True, env=env)
+            client, env = db_client(args.database, dbapassword)
+            return_code = subprocess.call(client + " < " + quote(sqlscriptfile), shell=True, env=env)
             if return_code != 0:
                 print("Creating database user failed")
                 sys.exit(1)

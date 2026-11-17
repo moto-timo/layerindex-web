@@ -147,6 +147,57 @@ def test_read_db_root_password(workdir):
     assert dockersetup.read_db_root_password() == 'rootpw'
 
 
+# --database postgresql (AI-generated, Claude Opus 5.5)
+
+def test_env_files_for_postgresql(workdir):
+    dockersetup.write_service_env_files('dbpw', 'rootpw', 'sekrit', 'mqpw', None, None,
+                                        None, None, False, False, database='postgresql')
+    assert read_env(workdir / '.env.local.db') == {'POSTGRES_DB': 'layersdb',
+                                                   'POSTGRES_PASSWORD': 'rootpw'}
+    for service in ('app', 'celery'):
+        env = read_env(workdir / ('.env.local.' + service))
+        assert env['DATABASE_ENGINE'] == 'postgresql'
+        assert env['DATABASE_USER'] == 'layers'
+    assert dockersetup.read_db_root_password() == 'rootpw'
+
+
+def test_env_files_for_mariadb_have_no_engine(workdir):
+    # docker/settings.py defaults to MariaDB
+    write_env_files()
+    assert 'DATABASE_ENGINE' not in read_env(workdir / '.env.local.app')
+    assert 'POSTGRES_PASSWORD' not in read_env(workdir / '.env.local.db')
+
+
+def test_compose_database_image(workdir):
+    dockersetup.edit_dockercompose('layers.example.com', '8080:80', False)
+    db = load_compose(workdir)['services']['layersdb']
+    assert db['image'].startswith('mariadb:')
+    assert 'utf8mb4' in db['command']
+
+    dockersetup.edit_dockercompose('layers.example.com', '8080:80', False, database='postgresql')
+    services = load_compose(workdir)['services']
+    assert services['layersdb']['image'] == 'postgres:17'
+    assert 'command' not in services['layersdb']
+    # Only layersdb changes
+    assert services['layersapp']['hostname'] == 'layers.example.com'
+
+
+def test_options_file_keeps_the_database(workdir):
+    dockersetup.edit_options_file('li', 'postgresql')
+    assert (workdir / '.dockersetup-options').read_text() == 'project_name=li\ndatabase=postgresql\n'
+
+
+@pytest.mark.parametrize('database,expected', [
+    ('mariadb', "GRANT SELECT, UPDATE, INSERT, DELETE ON layersdb.* TO layers;"),
+    ('postgresql', ("ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT SELECT, "
+                    "UPDATE, INSERT, DELETE ON TABLES TO layers;")),
+])
+def test_create_app_user_sql(database, expected):
+    sql = dockersetup.create_app_user_sql(database, 'pw')
+    assert expected in sql
+    assert "'pw'" in sql
+
+
 def test_dockerfile_proxy(workdir):
     dockersetup.edit_dockerfile('http://proxy:3128', 'http://proxy:3128', 'localhost')
     text = (workdir / 'Dockerfile').read_text()
