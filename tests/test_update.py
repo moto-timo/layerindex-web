@@ -10,9 +10,8 @@
 # of the repository (add -s to avoid suppressing the output of commands
 # when working on the tests)
 
-# NOTE: for these tests to work with MySQL / MariaDB and Django 1.11, you will need
-# to set the transaction isolation mode to READ COMMITTED (basically set
-# transaction-isolation = READ-COMMITTED in the [mysqld] section of /etc/my.cnf)
+# NOTE: these tests require the READ COMMITTED transaction isolation level,
+# which PostgreSQL uses by default and Django sets for MySQL / MariaDB
 
 # NOTE: we cannot practically save and restore the database between tests (since
 # we want these tests to work with any database backend) nor use transactions
