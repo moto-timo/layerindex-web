@@ -499,6 +499,17 @@ care, this will overwrite the data immediately without prompting!):
 zcat backupfile.sql.gz | docker compose exec -T layersdb /bin/sh -c '/usr/bin/mariadb -u root --password=${MYSQL_ROOT_PASSWORD} layersdb'
 ```
 
+With PostgreSQL (`./dockersetup.py --database postgresql`) the equivalents
+are:
+
+```sh
+docker compose exec layersdb pg_dump -U postgres --clean --if-exists layersdb | gzip > backup-`date +%Y_%m_%d_%H%M`.sql.gz
+zcat backupfile.sql.gz | docker compose exec -T layersdb psql -q -v ON_ERROR_STOP=1 -U postgres -d layersdb
+```
+
+README.postgresql.md describes moving an existing installation from MariaDB to
+PostgreSQL.
+
 
 ## Maintenance
 
